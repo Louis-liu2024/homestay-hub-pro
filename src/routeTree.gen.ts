@@ -9,38 +9,105 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppPriceCalculatorRouteImport } from './routes/_app.price-calculator'
+import { Route as AppOrdersRouteImport } from './routes/_app.orders'
+import { Route as AppDataPoolIndexRouteImport } from './routes/_app.data-pool.index'
+import { Route as AppDataPoolHotelIdRouteImport } from './routes/_app.data-pool.$hotelId'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppPriceCalculatorRoute = AppPriceCalculatorRouteImport.update({
+  id: '/price-calculator',
+  path: '/price-calculator',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOrdersRoute = AppOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDataPoolIndexRoute = AppDataPoolIndexRouteImport.update({
+  id: '/data-pool/',
+  path: '/data-pool/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDataPoolHotelIdRoute = AppDataPoolHotelIdRouteImport.update({
+  id: '/data-pool/$hotelId',
+  path: '/data-pool/$hotelId',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/orders': typeof AppOrdersRoute
+  '/price-calculator': typeof AppPriceCalculatorRoute
+  '/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
+  '/data-pool/': typeof AppDataPoolIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/orders': typeof AppOrdersRoute
+  '/price-calculator': typeof AppPriceCalculatorRoute
+  '/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
+  '/data-pool': typeof AppDataPoolIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/orders': typeof AppOrdersRoute
+  '/_app/price-calculator': typeof AppPriceCalculatorRoute
+  '/_app/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
+  '/_app/data-pool/': typeof AppDataPoolIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/orders'
+    | '/price-calculator'
+    | '/data-pool/$hotelId'
+    | '/data-pool/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/orders'
+    | '/price-calculator'
+    | '/data-pool/$hotelId'
+    | '/data-pool'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_app/orders'
+    | '/_app/price-calculator'
+    | '/_app/data-pool/$hotelId'
+    | '/_app/data-pool/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +115,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/price-calculator': {
+      id: '/_app/price-calculator'
+      path: '/price-calculator'
+      fullPath: '/price-calculator'
+      preLoaderRoute: typeof AppPriceCalculatorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/orders': {
+      id: '/_app/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof AppOrdersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/data-pool/': {
+      id: '/_app/data-pool/'
+      path: '/data-pool'
+      fullPath: '/data-pool/'
+      preLoaderRoute: typeof AppDataPoolIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/data-pool/$hotelId': {
+      id: '/_app/data-pool/$hotelId'
+      path: '/data-pool/$hotelId'
+      fullPath: '/data-pool/$hotelId'
+      preLoaderRoute: typeof AppDataPoolHotelIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppOrdersRoute: typeof AppOrdersRoute
+  AppPriceCalculatorRoute: typeof AppPriceCalculatorRoute
+  AppDataPoolHotelIdRoute: typeof AppDataPoolHotelIdRoute
+  AppDataPoolIndexRoute: typeof AppDataPoolIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppOrdersRoute: AppOrdersRoute,
+  AppPriceCalculatorRoute: AppPriceCalculatorRoute,
+  AppDataPoolHotelIdRoute: AppDataPoolHotelIdRoute,
+  AppDataPoolIndexRoute: AppDataPoolIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
