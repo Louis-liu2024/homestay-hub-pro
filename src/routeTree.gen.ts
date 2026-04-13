@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppShopsRouteImport } from './routes/_app.shops'
 import { Route as AppPriceCalculatorRouteImport } from './routes/_app.price-calculator'
 import { Route as AppOrdersRouteImport } from './routes/_app.orders'
+import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppDataPoolIndexRouteImport } from './routes/_app.data-pool.index'
 import { Route as AppDataPoolHotelIdRouteImport } from './routes/_app.data-pool.$hotelId'
 
@@ -25,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppShopsRoute = AppShopsRouteImport.update({
+  id: '/shops',
+  path: '/shops',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPriceCalculatorRoute = AppPriceCalculatorRouteImport.update({
   id: '/price-calculator',
   path: '/price-calculator',
@@ -33,6 +40,11 @@ const AppPriceCalculatorRoute = AppPriceCalculatorRouteImport.update({
 const AppOrdersRoute = AppOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDataPoolIndexRoute = AppDataPoolIndexRouteImport.update({
@@ -48,15 +60,19 @@ const AppDataPoolHotelIdRoute = AppDataPoolHotelIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof AppDashboardRoute
   '/orders': typeof AppOrdersRoute
   '/price-calculator': typeof AppPriceCalculatorRoute
+  '/shops': typeof AppShopsRoute
   '/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
   '/data-pool/': typeof AppDataPoolIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof AppDashboardRoute
   '/orders': typeof AppOrdersRoute
   '/price-calculator': typeof AppPriceCalculatorRoute
+  '/shops': typeof AppShopsRoute
   '/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
   '/data-pool': typeof AppDataPoolIndexRoute
 }
@@ -64,8 +80,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/_app/dashboard': typeof AppDashboardRoute
   '/_app/orders': typeof AppOrdersRoute
   '/_app/price-calculator': typeof AppPriceCalculatorRoute
+  '/_app/shops': typeof AppShopsRoute
   '/_app/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
   '/_app/data-pool/': typeof AppDataPoolIndexRoute
 }
@@ -73,23 +91,29 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
     | '/orders'
     | '/price-calculator'
+    | '/shops'
     | '/data-pool/$hotelId'
     | '/data-pool/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dashboard'
     | '/orders'
     | '/price-calculator'
+    | '/shops'
     | '/data-pool/$hotelId'
     | '/data-pool'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/_app/dashboard'
     | '/_app/orders'
     | '/_app/price-calculator'
+    | '/_app/shops'
     | '/_app/data-pool/$hotelId'
     | '/_app/data-pool/'
   fileRoutesById: FileRoutesById
@@ -115,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/shops': {
+      id: '/_app/shops'
+      path: '/shops'
+      fullPath: '/shops'
+      preLoaderRoute: typeof AppShopsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/price-calculator': {
       id: '/_app/price-calculator'
       path: '/price-calculator'
@@ -127,6 +158,13 @@ declare module '@tanstack/react-router' {
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof AppOrdersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/data-pool/': {
@@ -147,15 +185,19 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppDashboardRoute: typeof AppDashboardRoute
   AppOrdersRoute: typeof AppOrdersRoute
   AppPriceCalculatorRoute: typeof AppPriceCalculatorRoute
+  AppShopsRoute: typeof AppShopsRoute
   AppDataPoolHotelIdRoute: typeof AppDataPoolHotelIdRoute
   AppDataPoolIndexRoute: typeof AppDataPoolIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDashboardRoute: AppDashboardRoute,
   AppOrdersRoute: AppOrdersRoute,
   AppPriceCalculatorRoute: AppPriceCalculatorRoute,
+  AppShopsRoute: AppShopsRoute,
   AppDataPoolHotelIdRoute: AppDataPoolHotelIdRoute,
   AppDataPoolIndexRoute: AppDataPoolIndexRoute,
 }

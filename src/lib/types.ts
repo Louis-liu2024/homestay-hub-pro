@@ -8,7 +8,7 @@ export interface Hotel {
   rating: number;
   channel: Channel;
   roomCount: number;
-  vacancyRate7d: number; // 近7天空房率 0-1
+  vacancyRate7d: number;
   tags: HotelTag[];
   city: string;
   address: string;
@@ -17,6 +17,7 @@ export interface Hotel {
   avgPrice: number;
   contactPhone: string;
   rooms: Room[];
+  shopId?: string;
 }
 
 export interface Room {
@@ -24,7 +25,7 @@ export interface Room {
   hotelId: string;
   name: string;
   price: number;
-  area: number; // 平方米
+  area: number;
   bedType: string;
   breakfast: '含早' | '不含早' | '可选早';
   maxGuests: number;
@@ -40,7 +41,8 @@ export interface PriceRule {
   brand: string;
   startDate: string;
   endDate: string;
-  markupPercent: number; // 涨幅百分比
+  markupPercent: number;
+  shopId?: string;
 }
 
 export type OrderStatus = '待领取' | '已领取' | '已完成';
@@ -61,4 +63,43 @@ export interface Order {
   remark?: string;
   createdAt: string;
   amount: number;
+  shopId?: string;
+  roomNights?: number;
+}
+
+export interface Shop {
+  id: string;
+  name: string;
+  region: string;
+  city: string;
+  address: string;
+  channels: Channel[];
+  publishTime?: string;
+  apiConfigs: ShopApiConfig[];
+  createdAt: string;
+}
+
+export interface ShopApiConfig {
+  id: string;
+  channel: Channel;
+  apiUrl: string;
+  shopAccountId: string;
+  apiKey: string;
+}
+
+export interface Operator {
+  id: string;
+  name: string;
+  ordersHandled: number;
+  avgProcessingMinutes: number;
+}
+
+export interface DashboardStats {
+  todayOrders: number;
+  todayOrdersChange: number;
+  totalOrders: number;
+  totalRoomNights: number;
+  totalUsers: number;
+  totalRevenue: number;
+  revenueChange: number;
 }
