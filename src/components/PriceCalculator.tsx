@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { mockPriceRules } from "@/lib/mock-data";
+import { mockPriceRules, mockShops } from "@/lib/mock-data";
 import type { PriceRule, HotelTag } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,7 @@ const allBrands = [
 
 export function PriceCalculator() {
   const [rules, setRules] = useState<PriceRule[]>(mockPriceRules);
+  const [shopFilter, setShopFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<PriceRule | null>(null);
   const [form, setForm] = useState<Omit<PriceRule, "id">>({
@@ -47,17 +48,20 @@ export function PriceCalculator() {
     startDate: "",
     endDate: "",
     markupPercent: 10,
+    shopId: undefined,
   });
+
+  const filtered = shopFilter === "all" ? rules : rules.filter(r => r.shopId === shopFilter);
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ tag: "全部", brand: "全部", startDate: "", endDate: "", markupPercent: 10 });
+    setForm({ tag: "全部", brand: "全部", startDate: "", endDate: "", markupPercent: 10, shopId: shopFilter === "all" ? undefined : shopFilter });
     setDialogOpen(true);
   };
 
   const openEdit = (rule: PriceRule) => {
     setEditing(rule);
-    setForm({ tag: rule.tag, brand: rule.brand, startDate: rule.startDate, endDate: rule.endDate, markupPercent: rule.markupPercent });
+    setForm({ tag: rule.tag, brand: rule.brand, startDate: rule.startDate, endDate: rule.endDate, markupPercent: rule.markupPercent, shopId: rule.shopId });
     setDialogOpen(true);
   };
 
@@ -86,14 +90,32 @@ export function PriceCalculator() {
     toast.success("规则已删除");
   };
 
+  const getShopName = (shopId?: string) => {
+    if (!shopId) return "—";
+    return mockShops.find(s => s.id === shopId)?.name || shopId;
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">价格计算器</h1>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-1" />
-          新增规则
-        </Button>
+        <div className="flex items-center gap-3">
+          <Select value={shopFilter} onValueChange={setShopFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="全部店铺" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部店铺</SelectItem>
+              {mockShops.map(s => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-1" />
+            新增规则
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -104,6 +126,7 @@ export function PriceCalculator() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>店铺</TableHead>
                 <TableHead>标签</TableHead>
                 <TableHead>品牌</TableHead>
                 <TableHead>开始日期</TableHead>
@@ -113,8 +136,9 @@ export function PriceCalculator() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rules.map((rule) => (
+              {filtered.map((rule) => (
                 <TableRow key={rule.id}>
+                  <TableCell className="text-sm">{getShopName(rule.shopId)}</TableCell>
                   <TableCell>{rule.tag}</TableCell>
                   <TableCell>{rule.brand}</TableCell>
                   <TableCell>{rule.startDate}</TableCell>
@@ -124,28 +148,19 @@ export function PriceCalculator() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEdit(rule)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => openEdit(rule)}>
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive"
-                        onClick={() => handleDelete(rule.id)}
-                      >
+                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(rule.id)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </TableCell>
                 </TableRow>
               ))}
-              {rules.length === 0 && (
+              {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     暂无规则，点击"新增规则"开始配置
                   </TableCell>
                 </TableRow>
@@ -162,13 +177,20 @@ export function PriceCalculator() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label>店铺</Label>
+              <Select value={form.shopId || "none"} onValueChange={v => setForm(f => ({ ...f, shopId: v === "none" ? undefined : v }))}>
+                <SelectTrigger><SelectValue placeholder="选择店铺" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">不限店铺</SelectItem>
+                  {mockShops.map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>标签</Label>
-              <Select
-                value={form.tag}
-                onValueChange={(v) =>
-                  setForm((f) => ({ ...f, tag: v as HotelTag | "全部" }))
-                }
-              >
+              <Select value={form.tag} onValueChange={(v) => setForm((f) => ({ ...f, tag: v as HotelTag | "全部" }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {allTags.map((t) => (
@@ -179,10 +201,7 @@ export function PriceCalculator() {
             </div>
             <div className="space-y-2">
               <Label>品牌</Label>
-              <Select
-                value={form.brand}
-                onValueChange={(v) => setForm((f) => ({ ...f, brand: v }))}
-              >
+              <Select value={form.brand} onValueChange={(v) => setForm((f) => ({ ...f, brand: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {allBrands.map((b) => (
@@ -194,45 +213,20 @@ export function PriceCalculator() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>开始日期</Label>
-                <Input
-                  type="date"
-                  value={form.startDate}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, startDate: e.target.value }))
-                  }
-                />
+                <Input type="date" value={form.startDate} onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))} />
               </div>
               <div className="space-y-2">
                 <Label>结束日期</Label>
-                <Input
-                  type="date"
-                  value={form.endDate}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, endDate: e.target.value }))
-                  }
-                />
+                <Input type="date" value={form.endDate} onChange={(e) => setForm((f) => ({ ...f, endDate: e.target.value }))} />
               </div>
             </div>
             <div className="space-y-2">
               <Label>涨幅百分比 (%)</Label>
-              <Input
-                type="number"
-                min={0}
-                max={200}
-                value={form.markupPercent}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    markupPercent: Number(e.target.value),
-                  }))
-                }
-              />
+              <Input type="number" min={0} max={200} value={form.markupPercent} onChange={(e) => setForm((f) => ({ ...f, markupPercent: Number(e.target.value) }))} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              取消
-            </Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
             <Button onClick={handleSave}>保存</Button>
           </DialogFooter>
         </DialogContent>

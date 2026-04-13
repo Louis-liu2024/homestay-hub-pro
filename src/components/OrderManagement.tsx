@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { mockOrders } from "@/lib/mock-data";
+import { mockOrders, mockShops } from "@/lib/mock-data";
 import type { Order, OrderStatus } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,26 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HandMetal, CheckCircle2 } from "lucide-react";
@@ -41,6 +28,7 @@ const statusColors: Record<OrderStatus, "default" | "secondary" | "outline"> = {
 export function OrderManagement() {
   const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "全部">("全部");
+  const [shopFilter, setShopFilter] = useState("all");
   const [claimDialog, setClaimDialog] = useState<Order | null>(null);
   const [claimForm, setClaimForm] = useState({
     otaPlatform: "",
@@ -49,10 +37,9 @@ export function OrderManagement() {
     remark: "",
   });
 
-  const filtered =
-    statusFilter === "全部"
-      ? orders
-      : orders.filter((o) => o.status === statusFilter);
+  const filtered = orders
+    .filter(o => statusFilter === "全部" || o.status === statusFilter)
+    .filter(o => shopFilter === "all" || o.shopId === shopFilter);
 
   const handleClaim = (order: Order) => {
     setClaimDialog(order);
@@ -69,12 +56,7 @@ export function OrderManagement() {
     setOrders((prev) =>
       prev.map((o) =>
         o.id === claimDialog.id
-          ? {
-              ...o,
-              status: "已领取" as OrderStatus,
-              claimedBy: "current_user",
-              ...claimForm,
-            }
+          ? { ...o, status: "已领取" as OrderStatus, claimedBy: "current_user", ...claimForm }
           : o
       )
     );
@@ -93,31 +75,39 @@ export function OrderManagement() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-foreground">订单管理</h1>
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => setStatusFilter(v as OrderStatus | "全部")}
-        >
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="全部">全部</SelectItem>
-            <SelectItem value="待领取">待领取</SelectItem>
-            <SelectItem value="已领取">已领取</SelectItem>
-            <SelectItem value="已完成">已完成</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3">
+          <Select value={shopFilter} onValueChange={setShopFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="全部店铺" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">全部店铺</SelectItem>
+              {mockShops.map(s => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as OrderStatus | "全部")}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="全部">全部</SelectItem>
+              <SelectItem value="待领取">待领取</SelectItem>
+              <SelectItem value="已领取">已领取</SelectItem>
+              <SelectItem value="已完成">已完成</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
             订单列表
-            <span className="text-sm font-normal text-muted-foreground ml-2">
-              ({filtered.length} 条)
-            </span>
+            <span className="text-sm font-normal text-muted-foreground ml-2">({filtered.length} 条)</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -140,59 +130,33 @@ export function OrderManagement() {
               <TableBody>
                 {filtered.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-mono text-xs">
-                      {order.orderNo}
-                    </TableCell>
-                    <TableCell className="font-medium max-w-[150px] truncate">
-                      {order.hotelName}
-                    </TableCell>
+                    <TableCell className="font-mono text-xs">{order.orderNo}</TableCell>
+                    <TableCell className="font-medium max-w-[150px] truncate">{order.hotelName}</TableCell>
                     <TableCell>{order.roomType}</TableCell>
                     <TableCell>{order.checkInDate}</TableCell>
                     <TableCell>{order.checkOutDate}</TableCell>
                     <TableCell>{order.guestName}</TableCell>
-                    <TableCell className="font-semibold">
-                      ¥{order.amount}
-                    </TableCell>
+                    <TableCell className="font-semibold">¥{order.amount}</TableCell>
                     <TableCell>
-                      <Badge variant={statusColors[order.status]}>
-                        {order.status}
-                      </Badge>
+                      <Badge variant={statusColors[order.status]}>{order.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {order.otaOrderNo || "—"}
-                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{order.otaOrderNo || "—"}</TableCell>
                     <TableCell className="text-right">
                       {order.status === "待领取" && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleClaim(order)}
-                        >
-                          <HandMetal className="h-3.5 w-3.5 mr-1" />
-                          领取
+                        <Button size="sm" onClick={() => handleClaim(order)}>
+                          <HandMetal className="h-3.5 w-3.5 mr-1" />领取
                         </Button>
                       )}
                       {order.status === "已领取" && (
                         <div className="flex justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleClaim(order)}
-                          >
-                            编辑
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleComplete(order.id)}
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
-                            完成
+                          <Button size="sm" variant="outline" onClick={() => handleClaim(order)}>编辑</Button>
+                          <Button size="sm" onClick={() => handleComplete(order.id)}>
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" />完成
                           </Button>
                         </div>
                       )}
                       {order.status === "已完成" && (
-                        <span className="text-xs text-muted-foreground">
-                          已完成
-                        </span>
+                        <span className="text-xs text-muted-foreground">已完成</span>
                       )}
                     </TableCell>
                   </TableRow>
@@ -203,98 +167,46 @@ export function OrderManagement() {
         </CardContent>
       </Card>
 
-      {/* Claim dialog */}
-      <Dialog
-        open={!!claimDialog}
-        onOpenChange={(open) => !open && setClaimDialog(null)}
-      >
+      <Dialog open={!!claimDialog} onOpenChange={(open) => !open && setClaimDialog(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {claimDialog?.status === "待领取" ? "领取任务" : "编辑订单信息"}
-            </DialogTitle>
+            <DialogTitle>{claimDialog?.status === "待领取" ? "领取任务" : "编辑订单信息"}</DialogTitle>
           </DialogHeader>
           {claimDialog && (
             <div className="space-y-4">
               <div className="rounded-lg bg-muted/50 p-3 text-sm space-y-1">
-                <p>
-                  <span className="text-muted-foreground">酒店：</span>
-                  {claimDialog.hotelName}
-                </p>
-                <p>
-                  <span className="text-muted-foreground">房型：</span>
-                  {claimDialog.roomType}
-                </p>
-                <p>
-                  <span className="text-muted-foreground">入住：</span>
-                  {claimDialog.checkInDate} ~ {claimDialog.checkOutDate}
-                </p>
+                <p><span className="text-muted-foreground">酒店：</span>{claimDialog.hotelName}</p>
+                <p><span className="text-muted-foreground">房型：</span>{claimDialog.roomType}</p>
+                <p><span className="text-muted-foreground">入住：</span>{claimDialog.checkInDate} ~ {claimDialog.checkOutDate}</p>
               </div>
               <div className="space-y-2">
                 <Label>OTA平台</Label>
-                <Select
-                  value={claimForm.otaPlatform}
-                  onValueChange={(v) =>
-                    setClaimForm((f) => ({ ...f, otaPlatform: v }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="选择平台" />
-                  </SelectTrigger>
+                <Select value={claimForm.otaPlatform} onValueChange={v => setClaimForm(f => ({ ...f, otaPlatform: v }))}>
+                  <SelectTrigger><SelectValue placeholder="选择平台" /></SelectTrigger>
                   <SelectContent>
-                    {["携程", "美团", "Booking", "飞猪", "去哪儿", "Agoda"].map(
-                      (p) => (
-                        <SelectItem key={p} value={p}>
-                          {p}
-                        </SelectItem>
-                      )
-                    )}
+                    {["携程", "美团", "Booking", "飞猪", "去哪儿", "Agoda"].map(p => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>OTA订单号</Label>
-                <Input
-                  value={claimForm.otaOrderNo}
-                  onChange={(e) =>
-                    setClaimForm((f) => ({ ...f, otaOrderNo: e.target.value }))
-                  }
-                  placeholder="输入在其他平台下单的订单号"
-                />
+                <Input value={claimForm.otaOrderNo} onChange={e => setClaimForm(f => ({ ...f, otaOrderNo: e.target.value }))} placeholder="输入在其他平台下单的订单号" />
               </div>
               <div className="space-y-2">
                 <Label>联系方式</Label>
-                <Input
-                  value={claimForm.contactInfo}
-                  onChange={(e) =>
-                    setClaimForm((f) => ({
-                      ...f,
-                      contactInfo: e.target.value,
-                    }))
-                  }
-                  placeholder="联系电话"
-                />
+                <Input value={claimForm.contactInfo} onChange={e => setClaimForm(f => ({ ...f, contactInfo: e.target.value }))} placeholder="联系电话" />
               </div>
               <div className="space-y-2">
                 <Label>备注</Label>
-                <Textarea
-                  value={claimForm.remark}
-                  onChange={(e) =>
-                    setClaimForm((f) => ({ ...f, remark: e.target.value }))
-                  }
-                  placeholder="其他备注信息"
-                  rows={3}
-                />
+                <Textarea value={claimForm.remark} onChange={e => setClaimForm(f => ({ ...f, remark: e.target.value }))} placeholder="其他备注信息" rows={3} />
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setClaimDialog(null)}>
-              取消
-            </Button>
-            <Button onClick={handleSaveClaim}>
-              {claimDialog?.status === "待领取" ? "确认领取" : "保存"}
-            </Button>
+            <Button variant="outline" onClick={() => setClaimDialog(null)}>取消</Button>
+            <Button onClick={handleSaveClaim}>{claimDialog?.status === "待领取" ? "确认领取" : "保存"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
