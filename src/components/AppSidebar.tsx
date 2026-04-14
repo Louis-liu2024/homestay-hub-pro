@@ -5,11 +5,11 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -28,29 +28,43 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <Hotel className="h-6 w-6 text-sidebar-primary" />
+      <SidebarHeader className="border-b border-sidebar-border px-4 py-5">
+        <Link to="/dashboard" className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center glow-sm">
+            <Hotel className="h-4.5 w-4.5 text-primary" />
+          </div>
           {!collapsed && (
-            <span className="text-lg font-bold text-sidebar-foreground">
-              酒店SaaS
-            </span>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
+                HotelOS
+              </span>
+              <span className="text-[10px] text-muted-foreground leading-none">
+                酒店管理平台
+              </span>
+            </div>
           )}
         </Link>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="pt-3">
         <SidebarGroup>
-          <SidebarGroupLabel>功能模块</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5 px-2">
               {items.map((item) => {
                 const isActive = location.pathname.startsWith(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      className={`h-9 rounded-md transition-all ${
+                        isActive
+                          ? "bg-primary/10 text-primary border border-primary/20"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      }`}
+                    >
                       <Link to={item.url}>
                         <item.icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!collapsed && <span className="text-[13px] font-medium">{item.title}</span>}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -60,6 +74,19 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border px-4 py-3">
+        {!collapsed && (
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+              A
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-medium text-sidebar-foreground">Admin</span>
+              <span className="text-[10px] text-muted-foreground">管理员</span>
+            </div>
+          </div>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }
