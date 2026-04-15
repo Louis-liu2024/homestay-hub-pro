@@ -98,8 +98,11 @@ export interface DashboardStats {
   todayOrders: number;
   todayOrdersChange: number;
   totalOrders: number;
+  totalOrdersChange: number;
   totalRoomNights: number;
+  totalRoomNightsChange: number;
   totalUsers: number;
+  totalUsersChange: number;
   totalRevenue: number;
   revenueChange: number;
 }

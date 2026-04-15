@@ -151,8 +151,11 @@ export const mockDashboardStats: DashboardStats = {
   todayOrders: 18,
   todayOrdersChange: 12.5,
   totalOrders: 1256,
+  totalOrdersChange: 6.2,
   totalRoomNights: 3842,
+  totalRoomNightsChange: 9.1,
   totalUsers: 892,
+  totalUsersChange: 3.8,
   totalRevenue: 2856000,
   revenueChange: 8.3,
 };
