@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -6,12 +6,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, RadialBarChart, RadialBar,
+  AreaChart, Area, PieChart, Pie, Cell, RadialBarChart, RadialBar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  Treemap, ReferenceDot, Label,
 } from "recharts";
 import {
   TrendingUp, TrendingDown, ShoppingCart, Moon, Users, DollarSign, Activity,
-  Trophy, Medal, Crown, Star, Zap, ArrowUpRight,
+  Trophy, Medal, Crown, Star, Zap, ArrowUpRight, MapPin,
 } from "lucide-react";
 import {
   mockDashboardStats, mockOrderTrend, mockChannelDistribution,
@@ -114,7 +115,6 @@ function RankBadge({ index }: { index: number }) {
   );
 }
 
-// Custom tooltip for area chart
 function TrendTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
@@ -133,6 +133,125 @@ function TrendTooltip({ active, payload, label }: any) {
   );
 }
 
+// City map positions (approximate China map positions as percentages)
+const CITY_POSITIONS: Record<string, { x: number; y: number }> = {
+  '上海': { x: 82, y: 48 },
+  '北京': { x: 72, y: 28 },
+  '杭州': { x: 80, y: 52 },
+  '成都': { x: 52, y: 55 },
+  '深圳': { x: 76, y: 72 },
+  '三亚': { x: 68, y: 88 },
+  '广州': { x: 74, y: 70 },
+  '厦门': { x: 80, y: 64 },
+  '大理': { x: 44, y: 65 },
+  '丽江': { x: 42, y: 60 },
+};
+
+function CityMapChart({ data }: { data: { city: string; orders: number }[] }) {
+  const maxOrders = Math.max(...data.map(d => d.orders));
+  return (
+    <div className="relative w-full h-[300px] bg-gradient-to-br from-blue-50/80 to-indigo-50/50 rounded-xl overflow-hidden border border-blue-100/50">
+      {/* Simplified China outline shape */}
+      <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full opacity-[0.08]" preserveAspectRatio="xMidYMid meet">
+        <path d="M30,15 L45,10 L60,12 L75,15 L85,20 L88,30 L90,40 L88,50 L85,55 L90,60 L88,65 L82,70 L78,75 L72,80 L68,85 L65,90 L60,88 L55,82 L50,78 L45,75 L40,72 L35,68 L30,65 L28,58 L25,50 L22,45 L20,38 L22,30 L25,22 Z" fill="#4F6EF7" />
+      </svg>
+      
+      {data.map((d) => {
+        const pos = CITY_POSITIONS[d.city];
+        if (!pos) return null;
+        const size = 16 + (d.orders / maxOrders) * 40;
+        const opacity = 0.3 + (d.orders / maxOrders) * 0.5;
+        return (
+          <div
+            key={d.city}
+            className="absolute transform -translate-x-1/2 -translate-y-1/2 group cursor-pointer"
+            style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+          >
+            {/* Pulse ring */}
+            <div
+              className="absolute rounded-full animate-ping"
+              style={{
+                width: size * 0.7,
+                height: size * 0.7,
+                left: `calc(50% - ${size * 0.35}px)`,
+                top: `calc(50% - ${size * 0.35}px)`,
+                background: `rgba(79, 110, 247, ${opacity * 0.3})`,
+              }}
+            />
+            {/* Bubble */}
+            <div
+              className="rounded-full flex items-center justify-center relative z-10 shadow-lg transition-transform group-hover:scale-125"
+              style={{
+                width: size,
+                height: size,
+                background: `radial-gradient(circle at 35% 35%, rgba(79, 110, 247, ${opacity + 0.2}), rgba(79, 110, 247, ${opacity}))`,
+                boxShadow: `0 0 ${size * 0.5}px rgba(79, 110, 247, ${opacity * 0.5})`,
+              }}
+            >
+              <span className="text-[8px] font-bold text-white drop-shadow-sm">{d.orders}</span>
+            </div>
+            {/* Label */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 whitespace-nowrap">
+              <span className="text-[10px] font-semibold text-gray-600 bg-white/80 px-1.5 py-0.5 rounded-md shadow-sm">{d.city}</span>
+            </div>
+            {/* Hover tooltip */}
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
+              <div className="bg-white rounded-lg shadow-xl border border-gray-100 px-3 py-2 whitespace-nowrap">
+                <p className="text-xs font-semibold text-gray-800">{d.city}</p>
+                <p className="text-[10px] text-gray-500">{d.orders} 订单</p>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Treemap custom content
+function TreemapContent({ x, y, width, height, name, count, index }: any) {
+  if (width < 30 || height < 25) return null;
+  const color = CHART_COLORS[index % CHART_COLORS.length];
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        rx={6}
+        fill={color}
+        fillOpacity={0.85}
+        stroke="#fff"
+        strokeWidth={2}
+      />
+      {width > 45 && height > 35 && (
+        <>
+          <text
+            x={x + width / 2}
+            y={y + height / 2 - 6}
+            textAnchor="middle"
+            fill="#fff"
+            fontSize={width > 80 ? 13 : 10}
+            fontWeight={600}
+          >
+            {name}
+          </text>
+          <text
+            x={x + width / 2}
+            y={y + height / 2 + 10}
+            textAnchor="middle"
+            fill="rgba(255,255,255,0.8)"
+            fontSize={width > 80 ? 11 : 9}
+          >
+            {count}
+          </text>
+        </>
+      )}
+    </g>
+  );
+}
+
 export function Dashboard() {
   const [timeRange, setTimeRange] = useState("7d");
   const [shopFilter, setShopFilter] = useState("all");
@@ -140,6 +259,30 @@ export function Dashboard() {
 
   // Transform room night data for radial bar
   const radialData = mockRoomNightDistribution.map((d, i) => ({
+    ...d,
+    fill: CHART_COLORS[i % CHART_COLORS.length],
+  }));
+
+  // Find max/min for trend chart
+  const trendExtreme = useMemo(() => {
+    const orders = mockOrderTrend.map(d => d.orders);
+    const maxVal = Math.max(...orders);
+    const minVal = Math.min(...orders);
+    const maxItem = mockOrderTrend.find(d => d.orders === maxVal)!;
+    const minItem = mockOrderTrend.find(d => d.orders === minVal)!;
+    return { maxItem, minItem, maxVal, minVal };
+  }, []);
+
+  // Treemap data for tags
+  const treemapData = mockTagDistribution.map((d, i) => ({
+    name: d.tag,
+    size: d.count,
+    count: d.count,
+    index: i,
+  }));
+
+  // Nightingale rose: need outerRadius per item — use Pie with varying outerRadius via custom shape
+  const roseData = mockChannelDistribution.map((d, i) => ({
     ...d,
     fill: CHART_COLORS[i % CHART_COLORS.length],
   }));
@@ -184,16 +327,16 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Stat cards */}
+      {/* Stat cards — ALL with 环比 */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard title="今日订单" value={stats.todayOrders} change={stats.todayOrdersChange} icon={ShoppingCart} gradient="linear-gradient(135deg, #4F6EF7, #6C8CFF)" />
-        <StatCard title="总订单数" value={stats.totalOrders} icon={Zap} gradient="linear-gradient(135deg, #06B6D4, #22D3EE)" />
-        <StatCard title="总房晚数" value={stats.totalRoomNights} icon={Moon} gradient="linear-gradient(135deg, #A855F7, #C084FC)" />
-        <StatCard title="总用户数" value={stats.totalUsers} icon={Users} gradient="linear-gradient(135deg, #22C55E, #4ADE80)" />
+        <StatCard title="总订单数" value={stats.totalOrders} change={stats.totalOrdersChange} icon={Zap} gradient="linear-gradient(135deg, #06B6D4, #22D3EE)" />
+        <StatCard title="总房晚数" value={stats.totalRoomNights} change={stats.totalRoomNightsChange} icon={Moon} gradient="linear-gradient(135deg, #A855F7, #C084FC)" />
+        <StatCard title="总用户数" value={stats.totalUsers} change={stats.totalUsersChange} icon={Users} gradient="linear-gradient(135deg, #22C55E, #4ADE80)" />
         <StatCard title="总盈利" value={`¥${(stats.totalRevenue / 10000).toFixed(1)}万`} change={stats.revenueChange} icon={DollarSign} gradient="linear-gradient(135deg, #F59E0B, #FBBF24)" />
       </div>
 
-      {/* Order trend — Area chart with gradient */}
+      {/* Order trend — Area chart with gradient + max/min labels */}
       <div className="space-y-3">
         <SectionTitle icon={TrendingUp}>订单趋势</SectionTitle>
         <Card className="card-elevated border-border/60">
@@ -218,6 +361,14 @@ export function Dashboard() {
                 <Legend wrapperStyle={{ fontSize: 12, paddingTop: 12 }} />
                 <Area yAxisId="left" type="monotone" dataKey="orders" name="订单数" stroke={GRADIENT_COLORS.blue.start} strokeWidth={2.5} fill="url(#gradientOrders)" dot={false} activeDot={{ r: 5, fill: GRADIENT_COLORS.blue.start, stroke: "#fff", strokeWidth: 2 }} />
                 <Area yAxisId="right" type="monotone" dataKey="revenue" name="收入(¥)" stroke={GRADIENT_COLORS.green.start} strokeWidth={2.5} fill="url(#gradientRevenue)" dot={false} activeDot={{ r: 5, fill: GRADIENT_COLORS.green.start, stroke: "#fff", strokeWidth: 2 }} />
+                {/* Max value marker */}
+                <ReferenceDot yAxisId="left" x={trendExtreme.maxItem.date} y={trendExtreme.maxVal} r={6} fill="#4F6EF7" stroke="#fff" strokeWidth={2}>
+                  <Label value={`最高 ${trendExtreme.maxVal}`} position="top" fill="#4F6EF7" fontSize={11} fontWeight={600} offset={10} />
+                </ReferenceDot>
+                {/* Min value marker */}
+                <ReferenceDot yAxisId="left" x={trendExtreme.minItem.date} y={trendExtreme.minVal} r={6} fill="#EF4444" stroke="#fff" strokeWidth={2}>
+                  <Label value={`最低 ${trendExtreme.minVal}`} position="bottom" fill="#EF4444" fontSize={11} fontWeight={600} offset={10} />
+                </ReferenceDot>
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -228,20 +379,30 @@ export function Dashboard() {
       <div className="space-y-3">
         <SectionTitle icon={Star}>数据分布</SectionTitle>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Channel distribution — Donut */}
+          {/* Channel distribution — Nightingale Rose */}
           <Card className="card-elevated border-border/60">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-semibold">渠道分布</CardTitle>
-              <Badge variant="secondary" className="text-[10px] font-normal">按订单量</Badge>
+              <Badge variant="secondary" className="text-[10px] font-normal">南丁格尔玫瑰图</Badge>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie data={mockChannelDistribution} dataKey="orders" nameKey="channel" cx="50%" cy="50%" outerRadius={100} innerRadius={60} paddingAngle={3} cornerRadius={4}
+                  <Pie
+                    data={roseData}
+                    dataKey="orders"
+                    nameKey="channel"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={30}
+                    outerRadius={120}
+                    paddingAngle={2}
+                    cornerRadius={4}
                     label={({ channel, percentage }) => `${channel} ${percentage}%`}
-                    labelLine={{ stroke: "#d1d5db", strokeWidth: 1 }}>
-                    {mockChannelDistribution.map((_, i) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                    labelLine={{ stroke: "#d1d5db", strokeWidth: 1 }}
+                  >
+                    {roseData.map((entry, i) => (
+                      <Cell key={i} fill={entry.fill} />
                     ))}
                   </Pie>
                   <Tooltip {...chartTooltipStyle} />
@@ -250,45 +411,49 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* Tag distribution — Horizontal bar with rounded corners */}
+          {/* Tag distribution — Treemap */}
           <Card className="card-elevated border-border/60">
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">标签分布</CardTitle></CardHeader>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-semibold">标签分布</CardTitle>
+              <Badge variant="secondary" className="text-[10px] font-normal">矩形树图</Badge>
+            </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={mockTagDistribution} layout="vertical" barSize={18}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                  <XAxis type="number" tick={axisStyle} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="tag" type="category" width={55} tick={{ ...axisStyle, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                  <Tooltip {...chartTooltipStyle} />
-                  <Bar dataKey="count" name="数量" radius={[0, 8, 8, 0]}>
-                    {mockTagDistribution.map((_, i) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
+              <ResponsiveContainer width="100%" height={300}>
+                <Treemap
+                  data={treemapData}
+                  dataKey="size"
+                  nameKey="name"
+                  aspectRatio={4 / 3}
+                  content={<TreemapContent />}
+                >
+                  <Tooltip
+                    content={({ payload }: any) => {
+                      if (!payload?.length) return null;
+                      const d = payload[0]?.payload;
+                      return (
+                        <div className="bg-white border border-gray-100 rounded-xl shadow-xl p-3">
+                          <p className="text-xs font-semibold text-gray-800">{d?.name}</p>
+                          <p className="text-[10px] text-gray-500">数量: {d?.count}</p>
+                        </div>
+                      );
+                    }}
+                  />
+                </Treemap>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* City distribution — Gradient bars */}
+          {/* City distribution — Map */}
           <Card className="card-elevated border-border/60">
-            <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">城市分布</CardTitle></CardHeader>
+            <CardHeader className="pb-2 flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-primary" />
+                城市分布
+              </CardTitle>
+              <Badge variant="secondary" className="text-[10px] font-normal">地图模式</Badge>
+            </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={mockCityDistribution} barSize={32}>
-                  <defs>
-                    <linearGradient id="cityGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#4F6EF7" stopOpacity={1} />
-                      <stop offset="100%" stopColor="#4F6EF7" stopOpacity={0.4} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                  <XAxis dataKey="city" tick={{ ...axisStyle, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={axisStyle} axisLine={false} tickLine={false} />
-                  <Tooltip {...chartTooltipStyle} />
-                  <Bar dataKey="orders" name="订单数" fill="url(#cityGrad)" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <CityMapChart data={mockCityDistribution} />
             </CardContent>
           </Card>
 
@@ -296,21 +461,30 @@ export function Dashboard() {
           <Card className="card-elevated border-border/60">
             <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">房型分布</CardTitle></CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={mockRoomTypeDistribution} layout="vertical" barSize={18}>
-                  <defs>
-                    <linearGradient id="roomGrad" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#A855F7" stopOpacity={0.4} />
-                      <stop offset="100%" stopColor="#A855F7" stopOpacity={1} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
-                  <XAxis type="number" tick={axisStyle} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="roomType" type="category" width={80} tick={{ ...axisStyle, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                  <Tooltip {...chartTooltipStyle} />
-                  <Bar dataKey="count" name="数量" fill="url(#roomGrad)" radius={[0, 8, 8, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="space-y-3">
+                {mockRoomTypeDistribution.map((d, i) => {
+                  const maxCount = Math.max(...mockRoomTypeDistribution.map(r => r.count));
+                  const pct = Math.round((d.count / maxCount) * 100);
+                  const color = CHART_COLORS[i % CHART_COLORS.length];
+                  return (
+                    <div key={d.roomType} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600 font-medium">{d.roomType}</span>
+                        <span className="font-semibold font-mono text-gray-800">{d.count}</span>
+                      </div>
+                      <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${pct}%`,
+                            background: `linear-gradient(90deg, ${color}90, ${color})`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
         </div>
