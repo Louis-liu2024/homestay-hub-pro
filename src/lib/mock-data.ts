@@ -162,21 +162,33 @@ export const mockDashboardStats: DashboardStats = {
 
 // ---- Order trend data (last 14 days) ----
 export const mockOrderTrend = [
-  { date: '03-30', orders: 12, revenue: 18600 },
-  { date: '03-31', orders: 15, revenue: 22400 },
-  { date: '04-01', orders: 18, revenue: 28900 },
-  { date: '04-02', orders: 14, revenue: 21200 },
-  { date: '04-03', orders: 22, revenue: 35600 },
-  { date: '04-04', orders: 19, revenue: 30100 },
-  { date: '04-05', orders: 16, revenue: 24800 },
-  { date: '04-06', orders: 25, revenue: 42000 },
-  { date: '04-07', orders: 21, revenue: 33500 },
-  { date: '04-08', orders: 17, revenue: 26700 },
-  { date: '04-09', orders: 28, revenue: 45200 },
-  { date: '04-10', orders: 20, revenue: 31800 },
-  { date: '04-11', orders: 24, revenue: 38400 },
-  { date: '04-12', orders: 19, revenue: 29600 },
+  { date: '03-30', orders: 12, revenue: 18600, checkIns: 8 },
+  { date: '03-31', orders: 15, revenue: 22400, checkIns: 11 },
+  { date: '04-01', orders: 18, revenue: 28900, checkIns: 14 },
+  { date: '04-02', orders: 14, revenue: 21200, checkIns: 10 },
+  { date: '04-03', orders: 22, revenue: 35600, checkIns: 18 },
+  { date: '04-04', orders: 19, revenue: 30100, checkIns: 15 },
+  { date: '04-05', orders: 16, revenue: 24800, checkIns: 12 },
+  { date: '04-06', orders: 25, revenue: 42000, checkIns: 20 },
+  { date: '04-07', orders: 21, revenue: 33500, checkIns: 17 },
+  { date: '04-08', orders: 17, revenue: 26700, checkIns: 13 },
+  { date: '04-09', orders: 28, revenue: 45200, checkIns: 22 },
+  { date: '04-10', orders: 20, revenue: 31800, checkIns: 16 },
+  { date: '04-11', orders: 24, revenue: 38400, checkIns: 19 },
+  { date: '04-12', orders: 19, revenue: 29600, checkIns: 14 },
 ];
+
+// ---- Province list ----
+export const mockProvinces = [
+  '上海', '北京', '浙江', '四川', '广东', '海南', '福建', '云南',
+];
+
+// ---- City to province mapping ----
+export const cityProvinceMap: Record<string, string> = {
+  '上海': '上海', '北京': '北京', '杭州': '浙江', '成都': '四川',
+  '深圳': '广东', '三亚': '海南', '广州': '广东', '厦门': '福建',
+  '大理': '云南', '丽江': '云南',
+};
 
 // ---- Channel distribution ----
 export const mockChannelDistribution = [
