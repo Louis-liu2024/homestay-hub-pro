@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -13,6 +13,9 @@ import {
   TrendingUp, TrendingDown, ShoppingCart, Moon, Users, DollarSign, Activity,
   Trophy, Medal, Crown, Star, Zap, ArrowUpRight, MapPin,
 } from "lucide-react";
+import { geoMercator, geoPath } from "d3-geo";
+import type { FeatureCollection } from "geojson";
+import chinaGeoData from "@/lib/china-geo.json";
 import {
   mockDashboardStats, mockOrderTrend, mockChannelDistribution,
   mockCityDistribution, mockTagDistribution, mockTopHotels,
