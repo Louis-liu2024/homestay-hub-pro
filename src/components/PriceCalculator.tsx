@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { mockPriceRules, mockShops } from "@/lib/mock-data";
 import type { PriceRule, HotelTag } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Pencil, Trash2, Calculator } from "lucide-react";
 import { toast } from "sonner";
+import { DataTablePagination } from "@/components/DataTablePagination";
 
 const allTags: (HotelTag | "全部")[] = [
   "全部", "精品", "连锁", "民宿", "度假", "商务", "亲子", "网红", "温泉",
