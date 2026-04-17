@@ -13,6 +13,30 @@ const brands = ['如家', '汉庭', '全季', '亚朵', '希尔顿', '万豪', '
 const cities = ['上海', '北京', '杭州', '成都', '深圳', '广州', '三亚', '大理', '丽江', '厦门'];
 const bedTypes = ['大床', '双床', '家庭房', '榻榻米', '圆床', '上下铺'];
 
+const roomImages = [
+  'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=600&q=70',
+  'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=600&q=70',
+  'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=70',
+  'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=600&q=70',
+  'https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600&q=70',
+  'https://images.unsplash.com/photo-1551776235-dde6d482980b?w=600&q=70',
+  'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=600&q=70',
+  'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=600&q=70',
+];
+
+const hotelCoverImages = [
+  'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=70',
+  'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=70',
+  'https://images.unsplash.com/photo-1455587734955-081b22074882?w=1200&q=70',
+  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=70',
+  'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200&q=70',
+  'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1200&q=70',
+  'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=1200&q=70',
+  'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&q=70',
+];
+
+const allFacilities = ['免费WiFi', '室内泳池', '健身房', 'SPA', '中餐厅', '西餐厅', '行政酒廊', '会议室', '免费停车', '机场接送', '商务中心', '24小时前台', '洗衣服务', '儿童乐园', '宠物友好'];
+
 function makeRooms(hotelId: string, count: number): Room[] {
   const roomNames = ['标准大床房', '豪华双床房', '商务套房', '家庭亲子房', '景观大床房', '行政套房', '经济单人房', '蜜月圆床房'];
   return Array.from({ length: count }, (_, i) => ({
@@ -28,6 +52,9 @@ function makeRooms(hotelId: string, count: number): Room[] {
     wifi: Math.random() > 0.1,
     published: Math.random() > 0.5,
     subscribedPrice: Math.random() > 0.7,
+    image: roomImages[(i + hotelId.length) % roomImages.length],
+    hasWindow: Math.random() > 0.2,
+    hasBathroom: Math.random() > 0.05,
   }));
 }
 
