@@ -5,11 +5,11 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -27,18 +27,18 @@ export function AppSidebar() {
   const location = useLocation();
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border px-4 py-5">
-        <Link to="/dashboard" className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center glow-sm">
-            <Hotel className="h-4.5 w-4.5 text-primary" />
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border h-14 px-3 flex items-center justify-center">
+        <Link to="/dashboard" className={`flex items-center gap-2.5 ${collapsed ? "justify-center" : ""}`}>
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md shadow-primary/20 shrink-0">
+            <Hotel className="h-4 w-4 text-primary-foreground" />
           </div>
           {!collapsed && (
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold tracking-tight text-sidebar-foreground">
+            <div className="flex flex-col leading-tight">
+              <span className="text-[14px] font-bold tracking-tight text-sidebar-foreground">
                 HotelOS
               </span>
-              <span className="text-[10px] text-muted-foreground leading-none">
+              <span className="text-[10px] text-muted-foreground leading-none mt-0.5">
                 酒店管理平台
               </span>
             </div>
@@ -46,9 +46,14 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent className="pt-3">
-        <SidebarGroup>
+        <SidebarGroup className="px-0">
+          {!collapsed && (
+            <SidebarGroupLabel className="px-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 mb-1">
+              主菜单
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-0.5 px-2">
+            <SidebarMenu className={`space-y-0.5 ${collapsed ? "px-1.5" : "px-2"}`}>
               {items.map((item) => {
                 const isActive = location.pathname.startsWith(item.url);
                 return (
@@ -56,15 +61,21 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
+                      tooltip={collapsed ? item.title : undefined}
                       className={`h-9 rounded-md transition-all ${
+                        collapsed ? "!size-9 !p-0 justify-center" : "px-3"
+                      } ${
                         isActive
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                          ? "bg-primary/10 text-primary font-semibold hover:bg-primary/15 hover:text-primary"
+                          : "text-sidebar-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
                       }`}
                     >
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        {!collapsed && <span className="text-[13px] font-medium">{item.title}</span>}
+                      <Link to={item.url} className="flex items-center gap-2.5">
+                        <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-primary" : ""}`} />
+                        {!collapsed && <span className="text-[13px]">{item.title}</span>}
+                        {!collapsed && isActive && (
+                          <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -74,19 +85,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border px-4 py-3">
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-              A
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-medium text-sidebar-foreground">Admin</span>
-              <span className="text-[10px] text-muted-foreground">管理员</span>
-            </div>
-          </div>
-        )}
-      </SidebarFooter>
     </Sidebar>
   );
 }
