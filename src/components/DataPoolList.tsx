@@ -7,10 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "@tanstack/react-router";
 import { Search, Eye, Upload, Database } from "lucide-react";
 import { toast } from "sonner";
+import { DataTablePagination } from "@/components/DataTablePagination";
 
 export function DataPoolList() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return mockHotels;
@@ -23,6 +26,11 @@ export function DataPoolList() {
     );
   }, [search]);
 
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize]
+  );
+
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -33,10 +41,10 @@ export function DataPoolList() {
   };
 
   const toggleAll = () => {
-    if (selected.size === filtered.length) {
+    if (selected.size === paged.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(filtered.map((h) => h.id)));
+      setSelected(new Set(paged.map((h) => h.id)));
     }
   };
 
@@ -46,45 +54,46 @@ export function DataPoolList() {
   };
 
   return (
-    <div className="p-5 md:p-7 space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">数据池</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">管理酒店与民宿数据源</p>
+    <div className="p-5 md:p-7 space-y-4 text-[13px]">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="relative max-w-sm flex-1 min-w-[240px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="搜索酒店名称、渠道、标签..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="pl-9 h-8 bg-card border-border/60 text-[13px]"
+          />
         </div>
-        <Badge variant="outline" className="text-xs border-border/50 h-6">
+        <Badge variant="outline" className="text-[12px] border-border/60 h-7 px-2.5">
           <Database className="h-3 w-3 mr-1" />
           {filtered.length} 条数据
         </Badge>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="搜索酒店名称、渠道、标签..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9 h-9 bg-card border-border/50 text-sm"
-        />
-      </div>
-
       {/* Table */}
-      <div className="border border-border/50 rounded-lg bg-card/60 overflow-hidden">
+      <div className="border border-border/50 rounded-lg bg-card overflow-hidden">
         <div className="flex">
           {/* Frozen left */}
-          <div className="shrink-0 border-r border-border/30 bg-card z-10" style={{ boxShadow: "2px 0 8px oklch(0 0 0 / 0.2)" }}>
-            <div className="flex items-center h-10 border-b border-border/30 bg-muted/30 px-3 gap-3">
+          <div className="shrink-0 border-r border-border/40 bg-card z-10" style={{ boxShadow: "2px 0 6px rgba(0,0,0,0.04)" }}>
+            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 px-3 gap-3">
               <Checkbox
-                checked={selected.size === filtered.length && filtered.length > 0}
+                checked={selected.size === paged.length && paged.length > 0}
                 onCheckedChange={toggleAll}
               />
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-48">
+              <span className="text-[12px] font-semibold text-muted-foreground w-48">
                 酒店名称
               </span>
             </div>
-            {filtered.map((hotel) => (
-              <div key={hotel.id} className="flex items-center h-12 border-b border-border/20 px-3 gap-3 hover:bg-accent/30 transition-colors">
+            {paged.map((hotel, idx) => (
+              <div
+                key={hotel.id}
+                className={`flex items-center h-12 border-b border-border/30 px-3 gap-3 hover:bg-accent/40 transition-colors ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
+              >
                 <Checkbox
                   checked={selected.has(hotel.id)}
                   onCheckedChange={() => toggleSelect(hotel.id)}
@@ -92,7 +101,7 @@ export function DataPoolList() {
                 <Link
                   to="/data-pool/$hotelId"
                   params={{ hotelId: hotel.id }}
-                  className="text-xs font-medium text-foreground hover:text-primary truncate w-48 transition-colors"
+                  className="text-[13px] font-medium text-foreground hover:text-primary truncate w-48 transition-colors"
                 >
                   {hotel.name}
                 </Link>
@@ -102,7 +111,7 @@ export function DataPoolList() {
 
           {/* Scrollable middle */}
           <div className="flex-1 overflow-x-auto min-w-0">
-            <div className="flex items-center h-10 border-b border-border/30 bg-muted/30 min-w-[800px]">
+            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 min-w-[800px]">
               <HeaderCell w="w-16">评分</HeaderCell>
               <HeaderCell w="w-20">渠道</HeaderCell>
               <HeaderCell w="w-20">房间量</HeaderCell>
@@ -113,45 +122,51 @@ export function DataPoolList() {
               <HeaderCell w="w-20">订单数</HeaderCell>
               <HeaderCell w="w-24">均价(¥)</HeaderCell>
             </div>
-            {filtered.map((hotel) => (
-              <div key={hotel.id} className="flex items-center h-12 border-b border-border/20 min-w-[800px] hover:bg-accent/30 transition-colors">
+            {paged.map((hotel, idx) => (
+              <div
+                key={hotel.id}
+                className={`flex items-center h-12 border-b border-border/30 min-w-[800px] hover:bg-accent/40 transition-colors ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
+              >
                 <DataCell w="w-16">
-                  <span className="text-xs font-semibold text-warning">{hotel.rating}</span>
+                  <span className="text-[13px] font-semibold text-warning">{hotel.rating}</span>
                 </DataCell>
                 <DataCell w="w-20">
-                  <Badge variant="outline" className="text-[10px] h-5 border-border/50">{hotel.channel}</Badge>
+                  <Badge variant="outline" className="text-[11px] h-5 border-border/60">{hotel.channel}</Badge>
                 </DataCell>
-                <DataCell w="w-20"><span className="text-xs font-mono">{hotel.roomCount}</span></DataCell>
+                <DataCell w="w-20"><span className="text-[13px] font-mono">{hotel.roomCount}</span></DataCell>
                 <DataCell w="w-24">
-                  <span className={`text-xs font-mono font-medium ${hotel.vacancyRate7d > 0.5 ? "text-destructive" : "text-success"}`}>
+                  <span className={`text-[13px] font-mono font-medium ${hotel.vacancyRate7d > 0.5 ? "text-destructive" : "text-success"}`}>
                     {(hotel.vacancyRate7d * 100).toFixed(0)}%
                   </span>
                 </DataCell>
                 <DataCell w="w-40">
                   <div className="flex gap-1 flex-wrap">
                     {hotel.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-[10px] h-4 px-1.5 bg-primary/10 text-primary border-0">
+                      <Badge key={tag} variant="secondary" className="text-[11px] h-4 px-1.5 bg-primary/10 text-primary border-0">
                         {tag}
                       </Badge>
                     ))}
                   </div>
                 </DataCell>
-                <DataCell w="w-20"><span className="text-xs">{hotel.city}</span></DataCell>
-                <DataCell w="w-24"><span className="text-xs">{hotel.brand}</span></DataCell>
-                <DataCell w="w-20"><span className="text-xs font-mono">{hotel.totalOrders}</span></DataCell>
-                <DataCell w="w-24"><span className="text-xs font-mono font-medium">¥{hotel.avgPrice}</span></DataCell>
+                <DataCell w="w-20"><span className="text-[13px]">{hotel.city}</span></DataCell>
+                <DataCell w="w-24"><span className="text-[13px]">{hotel.brand}</span></DataCell>
+                <DataCell w="w-20"><span className="text-[13px] font-mono">{hotel.totalOrders}</span></DataCell>
+                <DataCell w="w-24"><span className="text-[13px] font-mono font-medium">¥{hotel.avgPrice}</span></DataCell>
               </div>
             ))}
           </div>
 
           {/* Frozen right */}
-          <div className="shrink-0 border-l border-border/30 bg-card z-10" style={{ boxShadow: "-2px 0 8px oklch(0 0 0 / 0.2)" }}>
-            <div className="flex items-center h-10 border-b border-border/30 bg-muted/30 px-3">
-              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">操作</span>
+          <div className="shrink-0 border-l border-border/40 bg-card z-10" style={{ boxShadow: "-2px 0 6px rgba(0,0,0,0.04)" }}>
+            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 px-3">
+              <span className="text-[12px] font-semibold text-muted-foreground">操作</span>
             </div>
-            {filtered.map((hotel) => (
-              <div key={hotel.id} className="flex items-center h-12 border-b border-border/20 px-2 gap-1">
-                <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground hover:text-primary" asChild>
+            {paged.map((hotel, idx) => (
+              <div
+                key={hotel.id}
+                className={`flex items-center h-12 border-b border-border/30 px-2 gap-1 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
+              >
+                <Button variant="ghost" size="sm" className="h-7 text-[12px] text-muted-foreground hover:text-primary" asChild>
                   <Link to="/data-pool/$hotelId" params={{ hotelId: hotel.id }}>
                     <Eye className="h-3.5 w-3.5" />
                     <span className="hidden lg:inline ml-1">详情</span>
@@ -160,7 +175,7 @@ export function DataPoolList() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-xs text-muted-foreground hover:text-primary"
+                  className="h-7 text-[12px] text-muted-foreground hover:text-primary"
                   onClick={() => toast.success(`${hotel.name} 已发布`)}
                 >
                   <Upload className="h-3.5 w-3.5" />
@@ -172,10 +187,18 @@ export function DataPoolList() {
         </div>
       </div>
 
+      <DataTablePagination
+        total={filtered.length}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
+
       {/* Floating batch publish */}
       {selected.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 glass border border-primary/30 rounded-xl px-6 py-3 flex items-center gap-4 z-50 glow-primary">
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-[13px] font-medium text-foreground">
             已选择 <span className="text-primary font-bold">{selected.size}</span> 个酒店
           </span>
           <Button size="sm" onClick={handleBatchPublish} className="h-8">
@@ -190,7 +213,7 @@ export function DataPoolList() {
 
 function HeaderCell({ children, w }: { children: React.ReactNode; w: string }) {
   return (
-    <div className={`${w} shrink-0 px-3 flex items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider`}>
+    <div className={`${w} shrink-0 px-3 flex items-center text-[12px] font-semibold text-muted-foreground`}>
       {children}
     </div>
   );
