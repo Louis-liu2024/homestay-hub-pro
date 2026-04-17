@@ -18,6 +18,14 @@ export interface Hotel {
   contactPhone: string;
   rooms: Room[];
   shopId?: string;
+  // Rich details
+  description?: string;
+  images?: string[];
+  facilities?: string[];
+  openYear?: number;
+  decorationYear?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
 }
 
 export interface Room {
@@ -33,6 +41,23 @@ export interface Room {
   wifi: boolean;
   published: boolean;
   subscribedPrice: boolean;
+  // Extra room details
+  image?: string;
+  hasWindow?: boolean;
+  hasBathroom?: boolean;
+}
+
+// Price query (查价) result row
+export interface PriceQueryResult {
+  id: string;
+  roomTypeName: string;          // 房型
+  productName: string;           // 产品
+  cancelPolicy: string;          // 取消政策
+  bookingPolicy: string;         // 预定政策
+  breakfast: string;             // 早餐：1早 / 2早 / 不含早
+  price: number;                 // 价格
+  roomsLeft: number;             // 剩余间数
+  date: string;                  // 日期
 }
 
 export interface PriceRule {

@@ -4,27 +4,44 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@tanstack/react-router";
-import { Search, Eye, Upload, Database } from "lucide-react";
+import { Search, Eye, Upload, Database, Tag } from "lucide-react";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/DataTablePagination";
+import { PriceQueryDialog } from "@/components/PriceQueryDialog";
+import type { Channel, Hotel } from "@/lib/types";
+
+const CHANNELS: (Channel | "全部")[] = ["全部", "携程", "美团", "Booking", "飞猪", "去哪儿", "Agoda", "途家", "小红书"];
 
 export function DataPoolList() {
   const [search, setSearch] = useState("");
+  const [activeChannel, setActiveChannel] = useState<Channel | "全部">("全部");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [priceQueryHotel, setPriceQueryHotel] = useState<Hotel | null>(null);
+
+  const channelCounts = useMemo(() => {
+    const counts: Record<string, number> = { 全部: mockHotels.length };
+    for (const h of mockHotels) counts[h.channel] = (counts[h.channel] ?? 0) + 1;
+    return counts;
+  }, []);
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return mockHotels;
-    const q = search.toLowerCase();
-    return mockHotels.filter(
-      (h) =>
-        h.name.toLowerCase().includes(q) ||
-        h.channel.toLowerCase().includes(q) ||
-        h.tags.some((t) => t.includes(q))
-    );
-  }, [search]);
+    let list = mockHotels;
+    if (activeChannel !== "全部") list = list.filter((h) => h.channel === activeChannel);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (h) =>
+          h.name.toLowerCase().includes(q) ||
+          h.channel.toLowerCase().includes(q) ||
+          h.tags.some((t) => t.includes(q))
+      );
+    }
+    return list;
+  }, [search, activeChannel]);
 
   const paged = useMemo(
     () => filtered.slice((page - 1) * pageSize, page * pageSize),
@@ -55,6 +72,24 @@ export function DataPoolList() {
 
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
+      {/* Channel Tabs */}
+      <Tabs value={activeChannel} onValueChange={(v) => { setActiveChannel(v as Channel | "全部"); setPage(1); }}>
+        <TabsList className="h-9 bg-muted/50 p-1 flex-wrap">
+          {CHANNELS.map((ch) => (
+            <TabsTrigger
+              key={ch}
+              value={ch}
+              className="text-[13px] px-3 h-7 data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm"
+            >
+              {ch}
+              <span className="ml-1.5 text-[11px] text-muted-foreground data-[state=active]:text-primary/70">
+                {channelCounts[ch] ?? 0}
+              </span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="relative max-w-sm flex-1 min-w-[240px]">
@@ -176,6 +211,15 @@ export function DataPoolList() {
                   variant="ghost"
                   size="sm"
                   className="h-7 text-[12px] text-muted-foreground hover:text-primary"
+                  onClick={() => setPriceQueryHotel(hotel)}
+                >
+                  <Tag className="h-3.5 w-3.5" />
+                  <span className="hidden lg:inline ml-1">查价</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[12px] text-muted-foreground hover:text-primary"
                   onClick={() => toast.success(`${hotel.name} 已发布`)}
                 >
                   <Upload className="h-3.5 w-3.5" />
@@ -207,6 +251,12 @@ export function DataPoolList() {
           </Button>
         </div>
       )}
+
+      <PriceQueryDialog
+        hotel={priceQueryHotel}
+        open={!!priceQueryHotel}
+        onOpenChange={(o) => !o && setPriceQueryHotel(null)}
+      />
     </div>
   );
 }
