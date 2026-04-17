@@ -58,7 +58,8 @@
   --radius: 0.625rem;
   --font-display: "Inter", "SF Pro Display", system-ui, sans-serif;
   --font-body: "Inter", "SF Pro Text", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+  /* 数字与正文统一字体（不再使用等宽字体） */
+  --font-mono: "Inter", "SF Pro Text", system-ui, sans-serif;
 
   /* Pure white base */
   --background: oklch(0.985 0 0);
