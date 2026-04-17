@@ -138,6 +138,56 @@ function TrendTooltip({ active, payload, label }: any) {
 }
 
 // City coordinates for d3-geo projection
+type GeoRing = [number, number][];
+
+function getRingSignedArea(ring: GeoRing) {
+  let area = 0;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [x1, y1] = ring[j];
+    const [x2, y2] = ring[i];
+    area += (x2 - x1) * (y2 + y1);
+  }
+
+  return area;
+}
+
+function normalizeGeoGeometryWinding(geometry: any) {
+  if (!geometry) return geometry;
+
+  const normalizePolygon = (polygon: GeoRing[]) => polygon.map((ring, index) => {
+    const isClockwise = getRingSignedArea(ring) > 0;
+    const shouldBeClockwise = index === 0;
+    return isClockwise === shouldBeClockwise ? ring : [...ring].reverse();
+  });
+
+  if (geometry.type === "Polygon") {
+    return {
+      ...geometry,
+      coordinates: normalizePolygon(geometry.coordinates),
+    };
+  }
+
+  if (geometry.type === "MultiPolygon") {
+    return {
+      ...geometry,
+      coordinates: geometry.coordinates.map((polygon: GeoRing[]) => normalizePolygon(polygon)),
+    };
+  }
+
+  return geometry;
+}
+
+function normalizeFeatureCollectionWinding(collection: FeatureCollection) {
+  return {
+    ...collection,
+    features: collection.features.map((feature) => ({
+      ...feature,
+      geometry: normalizeGeoGeometryWinding(feature.geometry),
+    })),
+  } as FeatureCollection;
+}
+
 const CITY_COORDS: Record<string, [number, number]> = {
   '上海': [121.47, 31.23],
   '北京': [116.41, 39.90],
@@ -161,13 +211,19 @@ function ChinaMapChart({ data, hoveredCity, setHoveredCity }: {
 
   const mapWidth = 900;
   const mapHeight = 680;
+  const geo = useMemo(
+    () => normalizeFeatureCollectionWinding(chinaGeoData as unknown as FeatureCollection),
+    [],
+  );
 
   const projection = useMemo(() => {
-    return geoMercator().center([104, 35]).scale(620).translate([mapWidth / 2, mapHeight / 2]);
-  }, []);
+    return geoMercator().fitExtent(
+      [[28, 24], [mapWidth - 28, mapHeight - 24]],
+      geo as any,
+    );
+  }, [geo]);
 
   const pathGen = useMemo(() => geoPath().projection(projection), [projection]);
-  const geo = chinaGeoData as unknown as FeatureCollection;
 
   return (
     <Card className="card-elevated border-border/60">
