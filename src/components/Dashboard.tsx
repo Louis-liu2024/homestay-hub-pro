@@ -161,13 +161,16 @@ function ChinaMapChart({ data, hoveredCity, setHoveredCity }: {
 
   const mapWidth = 900;
   const mapHeight = 680;
+  const geo = chinaGeoData as unknown as FeatureCollection;
 
   const projection = useMemo(() => {
-    return geoMercator().center([104, 35]).scale(620).translate([mapWidth / 2, mapHeight / 2]);
-  }, []);
+    return geoMercator().fitExtent(
+      [[28, 24], [mapWidth - 28, mapHeight - 24]],
+      geo as any,
+    );
+  }, [geo]);
 
   const pathGen = useMemo(() => geoPath().projection(projection), [projection]);
-  const geo = chinaGeoData as unknown as FeatureCollection;
 
   return (
     <Card className="card-elevated border-border/60">
