@@ -102,12 +102,8 @@ export function ShopManagement() {
   };
 
   return (
-    <div className="p-5 md:p-7 space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">店铺管理</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">管理店铺信息与渠道API</p>
-        </div>
+    <div className="p-5 md:p-7 space-y-4 text-[13px]">
+      <div className="flex items-center justify-end">
         <Button onClick={openCreate} size="sm" className="h-8">
           <Plus className="h-3.5 w-3.5 mr-1" />新增店铺
         </Button>
@@ -161,37 +157,39 @@ export function ShopManagement() {
                   <AccordionContent>
                     <div className="space-y-2">
                       {shop.apiConfigs.length > 0 && (
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="border-border/30 hover:bg-transparent">
-                              <TableHead className="text-xs">渠道</TableHead>
-                              <TableHead className="text-xs">API路径</TableHead>
-                              <TableHead className="text-xs">店铺ID</TableHead>
-                              <TableHead className="text-xs">密钥</TableHead>
-                              <TableHead className="text-xs text-right">操作</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {shop.apiConfigs.map(ac => (
-                              <TableRow key={ac.id} className="border-border/20">
-                                <TableCell><Badge variant="outline" className="text-[10px] h-5 border-border/50">{ac.channel}</Badge></TableCell>
-                                <TableCell className="font-mono text-[10px] max-w-[180px] truncate text-muted-foreground">{ac.apiUrl}</TableCell>
-                                <TableCell className="font-mono text-[10px]">{ac.shopAccountId}</TableCell>
-                                <TableCell className="font-mono text-[10px] text-muted-foreground">{'•'.repeat(8)}</TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-1">
-                                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => openApiDialog(shop, ac)}>
-                                      <Pencil className="h-2.5 w-2.5" />
-                                    </Button>
-                                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-destructive" onClick={() => handleDeleteApi(shop.id, ac.id)}>
-                                      <Trash2 className="h-2.5 w-2.5" />
-                                    </Button>
-                                  </div>
-                                </TableCell>
+                        <div className="overflow-x-auto rounded-md border border-border/50">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-muted/40 border-border/40 hover:bg-muted/40">
+                                <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">渠道</TableHead>
+                                <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">API路径</TableHead>
+                                <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">店铺ID</TableHead>
+                                <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">密钥</TableHead>
+                                <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right">操作</TableHead>
                               </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
+                            </TableHeader>
+                            <TableBody>
+                              {shop.apiConfigs.map((ac, idx) => (
+                                <TableRow key={ac.id} className={`border-border/30 hover:bg-accent/40 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}>
+                                  <TableCell className="py-2"><Badge variant="outline" className="text-[11px] h-5 border-border/50">{ac.channel}</Badge></TableCell>
+                                  <TableCell className="font-mono text-[12px] max-w-[200px] truncate text-muted-foreground py-2">{ac.apiUrl}</TableCell>
+                                  <TableCell className="font-mono text-[12px] py-2">{ac.shopAccountId}</TableCell>
+                                  <TableCell className="font-mono text-[12px] text-muted-foreground py-2">{'•'.repeat(8)}</TableCell>
+                                  <TableCell className="text-right py-2">
+                                    <div className="flex justify-end gap-1">
+                                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => openApiDialog(shop, ac)}>
+                                        <Pencil className="h-2.5 w-2.5" />
+                                      </Button>
+                                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-destructive" onClick={() => handleDeleteApi(shop.id, ac.id)}>
+                                        <Trash2 className="h-2.5 w-2.5" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
                       )}
                       <Button size="sm" variant="outline" className="h-7 text-xs border-dashed" onClick={() => openApiDialog(shop)}>
                         <Plus className="h-3 w-3 mr-1" />添加API配置
