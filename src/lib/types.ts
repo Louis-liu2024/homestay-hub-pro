@@ -45,7 +45,7 @@ export interface PriceRule {
   shopId?: string;
 }
 
-export type OrderStatus = '待领取' | '已领取' | '已完成';
+export type OrderStatus = '待领取' | '已领取' | '已完成' | '已取消';
 
 export interface Order {
   id: string;
@@ -57,8 +57,11 @@ export interface Order {
   guestName: string;
   status: OrderStatus;
   claimedBy?: string;
+  claimedAt?: string; // ISO datetime when the task was claimed
   otaPlatform?: string;
   otaOrderNo?: string;
+  paymentAmount?: number;
+  accountId?: string; // 下单使用的账号
   contactInfo?: string;
   remark?: string;
   createdAt: string;
