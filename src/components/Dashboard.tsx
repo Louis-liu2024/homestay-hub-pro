@@ -404,22 +404,16 @@ export function Dashboard() {
   }, [provinceFilter]);
 
   return (
-    <div className="p-5 md:p-7 space-y-7 max-w-[1600px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            数据大盘
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              实时
-            </span>
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">全面监控运营核心数据指标</p>
-        </div>
+    <div className="p-5 md:p-7 space-y-6 max-w-[1600px] mx-auto text-[13px]">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[11px] font-semibold">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          实时数据
+        </span>
         <div className="flex items-center gap-2 flex-wrap">
           <Select value={shopFilter} onValueChange={setShopFilter}>
-            <SelectTrigger className="w-36 h-8 text-xs bg-white border-border/70 shadow-sm">
+            <SelectTrigger className="w-36 h-8 text-[13px] bg-white border-border/70 shadow-sm">
               <SelectValue placeholder="全部店铺" />
             </SelectTrigger>
             <SelectContent>
@@ -430,7 +424,7 @@ export function Dashboard() {
             </SelectContent>
           </Select>
           <Select value={provinceFilter} onValueChange={setProvinceFilter}>
-            <SelectTrigger className="w-28 h-8 text-xs bg-white border-border/70 shadow-sm">
+            <SelectTrigger className="w-28 h-8 text-[13px] bg-white border-border/70 shadow-sm">
               <SelectValue placeholder="全部省份" />
             </SelectTrigger>
             <SelectContent>
@@ -441,7 +435,7 @@ export function Dashboard() {
             </SelectContent>
           </Select>
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-28 h-8 text-xs bg-white border-border/70 shadow-sm">
+            <SelectTrigger className="w-28 h-8 text-[13px] bg-white border-border/70 shadow-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
