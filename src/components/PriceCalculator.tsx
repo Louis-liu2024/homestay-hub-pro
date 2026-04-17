@@ -28,13 +28,22 @@ const allBrands = [
 export function PriceCalculator() {
   const [rules, setRules] = useState<PriceRule[]>(mockPriceRules);
   const [shopFilter, setShopFilter] = useState("all");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<PriceRule | null>(null);
   const [form, setForm] = useState<Omit<PriceRule, "id">>({
     tag: "全部", brand: "全部", startDate: "", endDate: "", markupPercent: 10, shopId: undefined,
   });
 
-  const filtered = shopFilter === "all" ? rules : rules.filter(r => r.shopId === shopFilter);
+  const filtered = useMemo(
+    () => (shopFilter === "all" ? rules : rules.filter(r => r.shopId === shopFilter)),
+    [rules, shopFilter]
+  );
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize]
+  );
 
   const openCreate = () => {
     setEditing(null);
