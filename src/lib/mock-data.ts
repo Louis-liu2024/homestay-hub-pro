@@ -114,6 +114,12 @@ const shopIds = ['shop1', 'shop2', 'shop3', 'shop4'];
 export const mockHotels: Hotel[] = hotelNames.map((name, i) => {
   const roomCount = 3 + Math.floor(Math.random() * 6);
   const id = `h${i + 1}`;
+  const cover = hotelCoverImages[i % hotelCoverImages.length];
+  const extra = roomImages[(i + 1) % roomImages.length];
+  const extra2 = roomImages[(i + 3) % roomImages.length];
+  // Stable facility selection
+  const facilityCount = 6 + (i % 5);
+  const facilities = allFacilities.slice(0, facilityCount);
   return {
     id,
     name,
@@ -130,6 +136,13 @@ export const mockHotels: Hotel[] = hotelNames.map((name, i) => {
     contactPhone: `1${3 + Math.floor(Math.random() * 7)}${String(Math.floor(Math.random() * 1e9)).padStart(9, '0')}`,
     rooms: makeRooms(id, roomCount),
     shopId: shopIds[i % shopIds.length],
+    description: `${name}地处${cities[i % cities.length]}核心区域，交通便利，毗邻商圈与地铁站。酒店${2010 + (i % 13)}年开业，${2020 + (i % 5)}年完成全面翻新装修，融合现代设计与本地文化元素，致力于为商旅与度假客人提供舒适体验。`,
+    images: [cover, extra, extra2],
+    facilities,
+    openYear: 2010 + (i % 13),
+    decorationYear: 2020 + (i % 5),
+    checkInTime: '14:00',
+    checkOutTime: '12:00',
   };
 });
 
