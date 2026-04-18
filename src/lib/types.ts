@@ -125,6 +125,8 @@ export interface OtaAccount {
   dailyAvgOrders: number;
   createdAt: string;
   phone: string;
+  loginAccount?: string;
+  password?: string;
   dailyLimit: number;
   weeklyLimit: number;
   monthlyLimit: number;

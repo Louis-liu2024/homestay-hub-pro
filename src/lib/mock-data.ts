@@ -193,12 +193,12 @@ export const mockOperators: Operator[] = [
 
 // ---- OTA Accounts ----
 export const mockOtaAccounts: OtaAccount[] = [
-  { id: 'acc_ct_01', name: '携程主账号', platform: '携程', memberLevel: '钻石', totalOrders: 1286, dailyAvgOrders: 14.2, createdAt: '2024-08-12', phone: '13800001111', dailyLimit: 30, weeklyLimit: 180, monthlyLimit: 700, operatorIds: ['op1', 'op2'] },
-  { id: 'acc_mt_01', name: '美团企业账号', platform: '美团', memberLevel: '金卡', totalOrders: 892, dailyAvgOrders: 9.8, createdAt: '2024-09-03', phone: '13800002222', dailyLimit: 25, weeklyLimit: 150, monthlyLimit: 600, operatorIds: ['op2', 'op3'] },
-  { id: 'acc_bk_02', name: 'Booking 企业账号', platform: 'Booking', memberLevel: '金卡', totalOrders: 524, dailyAvgOrders: 6.1, createdAt: '2024-10-15', phone: '13800003333', dailyLimit: 20, weeklyLimit: 120, monthlyLimit: 480, operatorIds: ['op1'] },
-  { id: 'acc_fz_01', name: '飞猪官方账号', platform: '飞猪', memberLevel: '银卡', totalOrders: 412, dailyAvgOrders: 5.2, createdAt: '2024-11-20', phone: '13800004444', dailyLimit: 18, weeklyLimit: 100, monthlyLimit: 400, operatorIds: ['op3', 'op4'] },
-  { id: 'acc_qn_01', name: '去哪儿日常号', platform: '去哪儿', memberLevel: '银卡', totalOrders: 268, dailyAvgOrders: 3.8, createdAt: '2025-01-08', phone: '13800005555', dailyLimit: 15, weeklyLimit: 90, monthlyLimit: 360, operatorIds: ['op4'] },
-  { id: 'acc_ct_03', name: '携程备用账号', platform: '携程', memberLevel: '普通会员', totalOrders: 96, dailyAvgOrders: 1.4, createdAt: '2025-02-22', phone: '13800006666', dailyLimit: 10, weeklyLimit: 60, monthlyLimit: 240, operatorIds: ['op1', 'op3'] },
+  { id: 'acc_ct_01', name: '携程主账号', platform: '携程', memberLevel: '钻石', totalOrders: 1286, dailyAvgOrders: 14.2, createdAt: '2024-08-12', phone: '13800001111', loginAccount: 'ctrip_main', password: 'Ctrip@2024!Sec', dailyLimit: 30, weeklyLimit: 180, monthlyLimit: 700, operatorIds: ['op1', 'op2'] },
+  { id: 'acc_mt_01', name: '美团企业账号', platform: '美团', memberLevel: '金卡', totalOrders: 892, dailyAvgOrders: 9.8, createdAt: '2024-09-03', phone: '13800002222', loginAccount: 'meituan_corp', password: 'Mt#Corp2024', dailyLimit: 25, weeklyLimit: 150, monthlyLimit: 600, operatorIds: ['op2', 'op3'] },
+  { id: 'acc_bk_02', name: 'Booking 企业账号', platform: 'Booking', memberLevel: '金卡', totalOrders: 524, dailyAvgOrders: 6.1, createdAt: '2024-10-15', phone: '13800003333', loginAccount: 'booking_ent', password: 'Bk!Ent#2024', dailyLimit: 20, weeklyLimit: 120, monthlyLimit: 480, operatorIds: ['op1'] },
+  { id: 'acc_fz_01', name: '飞猪官方账号', platform: '飞猪', memberLevel: '银卡', totalOrders: 412, dailyAvgOrders: 5.2, createdAt: '2024-11-20', phone: '13800004444', loginAccount: 'feizhu_off', password: 'Fz@Off2024', dailyLimit: 18, weeklyLimit: 100, monthlyLimit: 400, operatorIds: ['op3', 'op4'] },
+  { id: 'acc_qn_01', name: '去哪儿日常号', platform: '去哪儿', memberLevel: '银卡', totalOrders: 268, dailyAvgOrders: 3.8, createdAt: '2025-01-08', phone: '13800005555', loginAccount: 'qunar_daily', password: 'Qn#Daily25', dailyLimit: 15, weeklyLimit: 90, monthlyLimit: 360, operatorIds: ['op4'] },
+  { id: 'acc_ct_03', name: '携程备用账号', platform: '携程', memberLevel: '普通会员', totalOrders: 96, dailyAvgOrders: 1.4, createdAt: '2025-02-22', phone: '13800006666', loginAccount: 'ctrip_backup', password: 'CtBk!2025', dailyLimit: 10, weeklyLimit: 60, monthlyLimit: 240, operatorIds: ['op1', 'op3'] },
 ];
 
 // ---- Dashboard Stats ----
