@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppShopsRouteImport } from './routes/_app.shops'
 import { Route as AppPriceCalculatorRouteImport } from './routes/_app.price-calculator'
+import { Route as AppOtaAccountsRouteImport } from './routes/_app.ota-accounts'
 import { Route as AppOrdersRouteImport } from './routes/_app.orders'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppDataPoolIndexRouteImport } from './routes/_app.data-pool.index'
@@ -35,6 +36,11 @@ const AppShopsRoute = AppShopsRouteImport.update({
 const AppPriceCalculatorRoute = AppPriceCalculatorRouteImport.update({
   id: '/price-calculator',
   path: '/price-calculator',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOtaAccountsRoute = AppOtaAccountsRouteImport.update({
+  id: '/ota-accounts',
+  path: '/ota-accounts',
   getParentRoute: () => AppRoute,
 } as any)
 const AppOrdersRoute = AppOrdersRouteImport.update({
@@ -62,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/orders': typeof AppOrdersRoute
+  '/ota-accounts': typeof AppOtaAccountsRoute
   '/price-calculator': typeof AppPriceCalculatorRoute
   '/shops': typeof AppShopsRoute
   '/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AppDashboardRoute
   '/orders': typeof AppOrdersRoute
+  '/ota-accounts': typeof AppOtaAccountsRoute
   '/price-calculator': typeof AppPriceCalculatorRoute
   '/shops': typeof AppShopsRoute
   '/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/orders': typeof AppOrdersRoute
+  '/_app/ota-accounts': typeof AppOtaAccountsRoute
   '/_app/price-calculator': typeof AppPriceCalculatorRoute
   '/_app/shops': typeof AppShopsRoute
   '/_app/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
@@ -93,6 +102,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/orders'
+    | '/ota-accounts'
     | '/price-calculator'
     | '/shops'
     | '/data-pool/$hotelId'
@@ -102,6 +112,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/orders'
+    | '/ota-accounts'
     | '/price-calculator'
     | '/shops'
     | '/data-pool/$hotelId'
@@ -112,6 +123,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/dashboard'
     | '/_app/orders'
+    | '/_app/ota-accounts'
     | '/_app/price-calculator'
     | '/_app/shops'
     | '/_app/data-pool/$hotelId'
@@ -153,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPriceCalculatorRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/ota-accounts': {
+      id: '/_app/ota-accounts'
+      path: '/ota-accounts'
+      fullPath: '/ota-accounts'
+      preLoaderRoute: typeof AppOtaAccountsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/orders': {
       id: '/_app/orders'
       path: '/orders'
@@ -187,6 +206,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppOrdersRoute: typeof AppOrdersRoute
+  AppOtaAccountsRoute: typeof AppOtaAccountsRoute
   AppPriceCalculatorRoute: typeof AppPriceCalculatorRoute
   AppShopsRoute: typeof AppShopsRoute
   AppDataPoolHotelIdRoute: typeof AppDataPoolHotelIdRoute
@@ -196,6 +216,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppOrdersRoute: AppOrdersRoute,
+  AppOtaAccountsRoute: AppOtaAccountsRoute,
   AppPriceCalculatorRoute: AppPriceCalculatorRoute,
   AppShopsRoute: AppShopsRoute,
   AppDataPoolHotelIdRoute: AppDataPoolHotelIdRoute,
