@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@tanstack/react-router";
-import { Search, Eye, Upload, Database, Tag } from "lucide-react";
+import { Search, Upload, Database, Tag, Download } from "lucide-react";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/DataTablePagination";
 import { PriceQueryDialog } from "@/components/PriceQueryDialog";
@@ -70,6 +70,23 @@ export function DataPoolList() {
     setSelected(new Set());
   };
 
+  const handleExport = () => {
+    const headers = ["酒店名称", "渠道", "评分", "城市", "品牌", "房间量", "7天空房率", "订单数", "均价"];
+    const rows = filtered.map((h) => [
+      h.name, h.channel, h.rating, h.city, h.brand, h.roomCount,
+      `${(h.vacancyRate7d * 100).toFixed(0)}%`, h.totalOrders, h.avgPrice,
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `酒店数据_${activeChannel}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`已导出 ${filtered.length} 条数据`);
+  };
+
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
       {/* Channel Tabs */}
@@ -104,10 +121,15 @@ export function DataPoolList() {
             className="pl-9 h-8 bg-card border-border/60 text-[13px]"
           />
         </div>
-        <Badge variant="outline" className="text-[12px] border-border/60 h-7 px-2.5">
-          <Database className="h-3 w-3 mr-1" />
-          {filtered.length} 条数据
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-[12px] border-border/60 h-7 px-2.5">
+            <Database className="h-3 w-3 mr-1" />
+            {filtered.length} 条数据
+          </Badge>
+          <Button size="sm" variant="outline" className="h-8" onClick={handleExport}>
+            <Download className="h-3.5 w-3.5 mr-1" />导出
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
@@ -201,29 +223,23 @@ export function DataPoolList() {
                 key={hotel.id}
                 className={`flex items-center h-12 border-b border-border/30 px-2 gap-1 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
               >
-                <Button variant="ghost" size="sm" className="h-7 text-[12px] text-muted-foreground hover:text-primary" asChild>
-                  <Link to="/data-pool/$hotelId" params={{ hotelId: hotel.id }}>
-                    <Eye className="h-3.5 w-3.5" />
-                    <span className="hidden lg:inline ml-1">详情</span>
-                  </Link>
-                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-[12px] text-muted-foreground hover:text-primary"
+                  className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
                   onClick={() => setPriceQueryHotel(hotel)}
                 >
                   <Tag className="h-3.5 w-3.5" />
-                  <span className="hidden lg:inline ml-1">查价</span>
+                  <span className="ml-1">查价</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-[12px] text-muted-foreground hover:text-primary"
+                  className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
                   onClick={() => toast.success(`${hotel.name} 已发布`)}
                 >
                   <Upload className="h-3.5 w-3.5" />
-                  <span className="hidden lg:inline ml-1">发布</span>
+                  <span className="ml-1">发布</span>
                 </Button>
               </div>
             ))}
