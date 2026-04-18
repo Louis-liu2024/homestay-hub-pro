@@ -325,9 +325,6 @@ export function OtaAccountManagement() {
                       <Button variant="ghost" size="sm" onClick={() => openEdit(a, 'limits')} title="配置上限">
                         <Settings2 className="h-3.5 w-3.5" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(a, 'edit')} title="编辑">
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)} title="删除">
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
