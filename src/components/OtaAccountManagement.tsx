@@ -720,3 +720,93 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
     </div>
   );
 }
+
+function PasswordField({ password }: { password?: string }) {
+  const [revealed, setRevealed] = useState(false);
+  const [otpOpen, setOtpOpen] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+
+  const openOtp = () => {
+    setOtpOpen(true);
+    setOtpSent(false);
+    setOtpCode("");
+  };
+
+  const sendOtp = () => {
+    setOtpSent(true);
+    toast.success(`验证码已发送至超管手机号 ${ADMIN_PHONE}`);
+  };
+
+  const verifyOtp = () => {
+    if (otpCode.trim().length < 4) {
+      toast.error("请输入完整验证码");
+      return;
+    }
+    setRevealed(true);
+    setOtpOpen(false);
+    toast.success("验证通过，已显示密码");
+  };
+
+  return (
+    <>
+      <div className="space-y-0.5">
+        <div className="text-xs text-muted-foreground">登录密码</div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-mono tracking-wider">
+            {revealed ? (password || '——') : maskPassword(password)}
+          </span>
+          {password && (
+            <button
+              type="button"
+              onClick={() => revealed ? setRevealed(false) : openOtp()}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title={revealed ? '隐藏密码' : '查看密码（需验证码）'}
+            >
+              {revealed ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            </button>
+          )}
+        </div>
+        {!revealed && password && (
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+            <ShieldCheck className="h-3 w-3" /> 查看密码需通过超管手机号验证码
+          </p>
+        )}
+      </div>
+
+      <Dialog open={otpOpen} onOpenChange={setOtpOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" /> 安全验证
+            </DialogTitle>
+            <DialogDescription>
+              查看密码需要通过超管手机号 <b>{ADMIN_PHONE}</b> 接收的短信验证码验证
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>验证码</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="请输入 6 位验证码"
+                  inputMode="numeric"
+                />
+                <Button variant="outline" onClick={sendOtp} disabled={otpSent} className="shrink-0">
+                  {otpSent ? '已发送' : '发送验证码'}
+                </Button>
+              </div>
+              {otpSent && <p className="text-[11px] text-muted-foreground">演示环境：输入任意 4-6 位数字即可通过</p>}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOtpOpen(false)}>取消</Button>
+            <Button onClick={verifyOtp} disabled={!otpSent}>验证</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
