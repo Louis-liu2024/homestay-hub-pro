@@ -22,7 +22,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Plus, Settings2, Users, ExternalLink, Pencil, Trash2,
+  Plus, Settings2, ExternalLink, Trash2,
   Eye, EyeOff, ShieldCheck, KeyRound, UserPlus, X,
 } from "lucide-react";
 import { toast } from "sonner";
