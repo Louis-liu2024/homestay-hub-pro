@@ -10,6 +10,7 @@ import { Search, Upload, Database, Tag, Download } from "lucide-react";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/DataTablePagination";
 import { PriceQueryDialog } from "@/components/PriceQueryDialog";
+import { PublishDialog } from "@/components/PublishDialog";
 import type { Channel, Hotel } from "@/lib/types";
 
 const CHANNELS: (Channel | "全部")[] = ["全部", "携程", "美团", "Booking", "飞猪", "去哪儿", "Agoda", "途家", "小红书"];
@@ -21,6 +22,7 @@ export function DataPoolList() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [priceQueryHotel, setPriceQueryHotel] = useState<Hotel | null>(null);
+  const [publishHotel, setPublishHotel] = useState<Hotel | null>(null);
 
   const channelCounts = useMemo(() => {
     const counts: Record<string, number> = { 全部: mockHotels.length };
@@ -236,7 +238,7 @@ export function DataPoolList() {
                   variant="ghost"
                   size="sm"
                   className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
-                  onClick={() => toast.success(`${hotel.name} 已发布`)}
+                  onClick={() => setPublishHotel(hotel)}
                 >
                   <Upload className="h-3.5 w-3.5" />
                   <span className="ml-1">发布</span>
@@ -272,6 +274,12 @@ export function DataPoolList() {
         hotel={priceQueryHotel}
         open={!!priceQueryHotel}
         onOpenChange={(o) => !o && setPriceQueryHotel(null)}
+      />
+
+      <PublishDialog
+        hotel={publishHotel}
+        open={!!publishHotel}
+        onOpenChange={(o) => !o && setPublishHotel(null)}
       />
     </div>
   );
