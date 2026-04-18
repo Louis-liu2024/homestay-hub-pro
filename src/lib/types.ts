@@ -138,6 +138,7 @@ export interface Operator {
   name: string;
   ordersHandled: number;
   avgProcessingMinutes: number;
+  email?: string;
 }
 
 export interface DashboardStats {

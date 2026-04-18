@@ -185,10 +185,10 @@ export const mockOrders: Order[] = generateOrders();
 
 // ---- Operators ----
 export const mockOperators: Operator[] = [
-  { id: 'op1', name: '王运营', ordersHandled: 45, avgProcessingMinutes: 12 },
-  { id: 'op2', name: '李运营', ordersHandled: 38, avgProcessingMinutes: 15 },
-  { id: 'op3', name: '张运营', ordersHandled: 29, avgProcessingMinutes: 18 },
-  { id: 'op4', name: '赵运营', ordersHandled: 22, avgProcessingMinutes: 22 },
+  { id: 'op1', name: '王运营', ordersHandled: 45, avgProcessingMinutes: 12, email: 'wang@hotelsaas.com' },
+  { id: 'op2', name: '李运营', ordersHandled: 38, avgProcessingMinutes: 15, email: 'li@hotelsaas.com' },
+  { id: 'op3', name: '张运营', ordersHandled: 29, avgProcessingMinutes: 18, email: 'zhang@hotelsaas.com' },
+  { id: 'op4', name: '赵运营', ordersHandled: 22, avgProcessingMinutes: 22, email: 'zhao@hotelsaas.com' },
 ];
 
 // ---- OTA Accounts ----
