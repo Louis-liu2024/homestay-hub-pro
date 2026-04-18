@@ -610,7 +610,7 @@ function AccountDetailSheet({ account, onClose, onChange, operatorLookup, orders
               <Field label="所属平台" value={account.platform} />
               <Field label="会员等级" value={account.memberLevel} />
               <Field label="登录账号" value={account.loginAccount || '——'} />
-              <Field label="登录密码" value={maskPassword(account.password)} mono />
+              <PasswordField password={account.password} />
               <Field label="绑定手机号" value={account.phone} />
               <Field label="创建时间" value={account.createdAt} />
               <Field label="累计下单" value={account.totalOrders.toLocaleString()} />
