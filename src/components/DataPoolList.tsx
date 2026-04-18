@@ -223,29 +223,23 @@ export function DataPoolList() {
                 key={hotel.id}
                 className={`flex items-center h-12 border-b border-border/30 px-2 gap-1 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
               >
-                <Button variant="ghost" size="sm" className="h-7 text-[12px] text-muted-foreground hover:text-primary" asChild>
-                  <Link to="/data-pool/$hotelId" params={{ hotelId: hotel.id }}>
-                    <Eye className="h-3.5 w-3.5" />
-                    <span className="hidden lg:inline ml-1">详情</span>
-                  </Link>
-                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-[12px] text-muted-foreground hover:text-primary"
+                  className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
                   onClick={() => setPriceQueryHotel(hotel)}
                 >
                   <Tag className="h-3.5 w-3.5" />
-                  <span className="hidden lg:inline ml-1">查价</span>
+                  <span className="ml-1">查价</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-[12px] text-muted-foreground hover:text-primary"
+                  className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
                   onClick={() => toast.success(`${hotel.name} 已发布`)}
                 >
                   <Upload className="h-3.5 w-3.5" />
-                  <span className="hidden lg:inline ml-1">发布</span>
+                  <span className="ml-1">发布</span>
                 </Button>
               </div>
             ))}
