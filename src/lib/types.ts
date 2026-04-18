@@ -116,6 +116,21 @@ export interface ShopApiConfig {
   apiKey: string;
 }
 
+export interface OtaAccount {
+  id: string;
+  name: string;
+  platform: Channel;
+  memberLevel: '普通会员' | '银卡' | '金卡' | '钻石' | '黑卡';
+  totalOrders: number;
+  dailyAvgOrders: number;
+  createdAt: string;
+  phone: string;
+  dailyLimit: number;
+  weeklyLimit: number;
+  monthlyLimit: number;
+  operatorIds: string[];
+}
+
 export interface Operator {
   id: string;
   name: string;

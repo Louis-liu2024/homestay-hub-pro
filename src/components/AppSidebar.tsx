@@ -1,4 +1,4 @@
-import { Database, Calculator, ClipboardList, Hotel, BarChart3, Store } from "lucide-react";
+import { Database, Calculator, ClipboardList, Hotel, BarChart3, Store, KeyRound } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   Sidebar,
@@ -18,6 +18,7 @@ const items = [
   { title: "数据池", url: "/data-pool", icon: Database },
   { title: "价格计算器", url: "/price-calculator", icon: Calculator },
   { title: "订单管理", url: "/orders", icon: ClipboardList },
+  { title: "OTA账号", url: "/ota-accounts", icon: KeyRound },
   { title: "店铺管理", url: "/shops", icon: Store },
 ];
 
