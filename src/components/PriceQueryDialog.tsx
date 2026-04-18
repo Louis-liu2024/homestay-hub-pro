@@ -1,15 +1,18 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Tag, Upload, CalendarDays, Users, Baby, BedDouble } from "lucide-react";
+import { PublishDialog } from "@/components/PriceQueryDialog.publish";
 import type { Hotel, PriceQueryResult } from "@/lib/types";
 
 interface Props {
   hotel: Hotel | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Pre-select these room IDs in the publish dialog after查价 */
+  preselectedRoomIds?: string[];
 }
 
 function formatDate(d: Date) {
