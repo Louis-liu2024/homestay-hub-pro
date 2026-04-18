@@ -573,6 +573,7 @@ interface DetailProps {
 function AccountDetailSheet({ account, onClose, onChange, operatorLookup, orders }: DetailProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [pendingOps, setPendingOps] = useState<string[]>([]);
+  const [shareTargets, setShareTargets] = useState<string[] | null>(null);
 
   if (!account) return null;
 
@@ -590,10 +591,13 @@ function AccountDetailSheet({ account, onClose, onChange, operatorLookup, orders
       setAddOpen(false);
       return;
     }
+    const added = [...pendingOps];
     onChange({ ...account, operatorIds: [...account.operatorIds, ...pendingOps] });
     setPendingOps([]);
     setAddOpen(false);
     toast.success("已新增操作人员");
+    // 弹出凭据分享对话框
+    setShareTargets(added);
   };
 
   return (
