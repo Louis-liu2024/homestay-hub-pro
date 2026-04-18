@@ -55,6 +55,7 @@ function makeRooms(hotelId: string, count: number): Room[] {
     image: roomImages[(i + hotelId.length) % roomImages.length],
     hasWindow: Math.random() > 0.2,
     hasBathroom: Math.random() > 0.05,
+    hasVacancy: Math.random() > 0.25,
   }));
 }
 

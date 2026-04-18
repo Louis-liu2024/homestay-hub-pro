@@ -45,6 +45,7 @@ export interface Room {
   image?: string;
   hasWindow?: boolean;
   hasBathroom?: boolean;
+  hasVacancy?: boolean;
 }
 
 // Price query (查价) result row
