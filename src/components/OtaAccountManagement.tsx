@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus, Settings2, ExternalLink, Trash2,
   Eye, EyeOff, ShieldCheck, KeyRound, UserPlus, X,
+  Copy, Mail, Check,
 } from "lucide-react";
 import { toast } from "sonner";
 
