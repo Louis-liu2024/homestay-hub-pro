@@ -724,7 +724,120 @@ function AccountDetailSheet({ account, onClose, onChange, operatorLookup, orders
           </TabsContent>
         </Tabs>
       </SheetContent>
+
+      <ShareCredentialsDialog
+        account={account}
+        operatorIds={shareTargets}
+        onClose={() => setShareTargets(null)}
+      />
     </Sheet>
+  );
+}
+
+interface ShareDialogProps {
+  account: OtaAccount;
+  operatorIds: string[] | null;
+  onClose: () => void;
+}
+
+function ShareCredentialsDialog({ account, operatorIds, onClose }: ShareDialogProps) {
+  const [copied, setCopied] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const operators = (operatorIds ?? []).map((id) => mockOperators.find((o) => o.id === id)).filter(Boolean) as NonNullable<ReturnType<typeof mockOperators.find>>[];
+  const portalUrl = PLATFORM_LOGIN_URLS[account.platform];
+
+  const credentialsText =
+    `【${account.platform} 后台账号】\n` +
+    `账号名称：${account.name}\n` +
+    `登录地址：${portalUrl}\n` +
+    `登录账号：${account.loginAccount || '——'}\n` +
+    `登录密码：${account.password || '——'}\n` +
+    `绑定手机：${account.phone}\n` +
+    `\n请妥善保管，勿外传。`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(credentialsText);
+      setCopied(true);
+      toast.success("已复制到剪贴板");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("复制失败，请手动复制");
+    }
+  };
+
+  const handleSendEmail = () => {
+    const emails = operators.map((o) => o.email).filter(Boolean) as string[];
+    if (emails.length === 0) {
+      toast.error("操作人员未配置邮箱");
+      return;
+    }
+    // 演示：模拟发送
+    setSent(true);
+    toast.success(`凭据已通过邮件发送至 ${emails.length} 位操作人员`);
+    setTimeout(() => {
+      setSent(false);
+      onClose();
+    }, 1200);
+  };
+
+  const handleClose = () => {
+    setCopied(false);
+    setSent(false);
+    onClose();
+  };
+
+  return (
+    <Dialog open={operatorIds !== null} onOpenChange={(o) => !o && handleClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <KeyRound className="h-4 w-4 text-primary" /> 分享 OTA 后台凭据
+          </DialogTitle>
+          <DialogDescription>
+            将该 OTA 账号的后台链接和登录凭据发送给新分配的操作人员
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div className="rounded-md border bg-muted/40 p-3 space-y-1.5 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground w-16 shrink-0">分享对象</span>
+              <span className="flex flex-wrap gap-1">
+                {operators.map((o) => (
+                  <Badge key={o.id} variant="secondary" className="text-[11px]">
+                    {o.name}{o.email ? ` · ${o.email}` : ''}
+                  </Badge>
+                ))}
+              </span>
+            </div>
+          </div>
+
+          <div className="rounded-md border bg-background">
+            <pre className="text-xs p-3 whitespace-pre-wrap break-all font-mono leading-relaxed text-foreground/90">
+              {credentialsText}
+            </pre>
+          </div>
+
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+            <ShieldCheck className="h-3 w-3" /> 凭据为敏感信息，邮件发送将自动加密并记录审计日志
+          </p>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="outline" onClick={handleClose}>稍后再说</Button>
+          <Button variant="outline" onClick={handleCopy}>
+            {copied ? <Check className="h-3.5 w-3.5 mr-1" /> : <Copy className="h-3.5 w-3.5 mr-1" />}
+            {copied ? '已复制' : '一键复制'}
+          </Button>
+          <Button onClick={handleSendEmail} disabled={sent}>
+            <Mail className="h-3.5 w-3.5 mr-1" />
+            {sent ? '已发送' : '邮件发送'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
