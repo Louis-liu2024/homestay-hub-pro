@@ -81,7 +81,7 @@ export function PriceCalculator() {
 
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
-      {/* Filter bar */}
+      {/* Filter bar — only filters */}
       <Card className="border-border/60 bg-card">
         <CardContent className="py-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -96,22 +96,23 @@ export function PriceCalculator() {
                 ))}
               </SelectContent>
             </Select>
-            <span className="ml-auto text-[12px] text-muted-foreground">共 {filtered.length} 条规则</span>
-            <Button onClick={openCreate} size="sm" className="h-8">
-              <Plus className="h-3.5 w-3.5 mr-1" />新增规则
-            </Button>
           </div>
         </CardContent>
       </Card>
 
+      {/* Toolbar between filter & list */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[12px] text-muted-foreground flex items-center gap-1.5">
+          <Calculator className="h-3.5 w-3.5 text-muted-foreground" />
+          共 <b className="text-foreground">{filtered.length}</b> 条规则
+        </span>
+        <Button onClick={openCreate} size="sm" className="h-8">
+          <Plus className="h-3.5 w-3.5 mr-1" />新增规则
+        </Button>
+      </div>
+
       <Card className="border-border/60 bg-card">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-[13px] font-semibold flex items-center gap-2">
-            <Calculator className="h-4 w-4 text-muted-foreground" />
-            涨幅规则配置
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <div className="overflow-x-auto rounded-md border border-border/50">
             <Table>
               <TableHeader>
