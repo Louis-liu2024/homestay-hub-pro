@@ -295,6 +295,158 @@ export function OrderManagement() {
             />
           </div>
 
+          {/* Filter bar */}
+          <Card className="border-border/60 bg-card">
+            <CardContent className="py-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {/* 店铺 */}
+                <Select value={shopFilter} onValueChange={(v) => { setShopFilter(v); setAllPage(1); }}>
+                  <SelectTrigger className="w-36 h-8 text-[13px]">
+                    <SelectValue placeholder="全部店铺" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部店铺</SelectItem>
+                    {mockShops.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* 状态 */}
+                <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as OrderStatus | "全部"); setAllPage(1); }}>
+                  <SelectTrigger className="w-28 h-8 text-[13px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="全部">全部状态</SelectItem>
+                    <SelectItem value="待领取">待领取</SelectItem>
+                    <SelectItem value="已领取">已领取</SelectItem>
+                    <SelectItem value="已完成">已完成</SelectItem>
+                    <SelectItem value="已取消">已取消</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* 下单时间范围 */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={cn(
+                        "h-8 text-[13px] font-normal justify-start min-w-[200px]",
+                        !dateRange?.from && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "yyyy-MM-dd")} ~ {format(dateRange.to, "yyyy-MM-dd")}
+                          </>
+                        ) : (
+                          format(dateRange.from, "yyyy-MM-dd")
+                        )
+                      ) : (
+                        <span>下单时间范围</span>
+                      )}
+                      {dateRange?.from && (
+                        <X
+                          className="h-3.5 w-3.5 ml-2 opacity-60 hover:opacity-100"
+                          onClick={(e) => { e.stopPropagation(); setDateRange(undefined); setAllPage(1); }}
+                        />
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={(r) => { setDateRange(r); setAllPage(1); }}
+                      numberOfMonths={2}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {/* OTA 下单账号 */}
+                <Select value={accountFilter} onValueChange={(v) => { setAccountFilter(v); setAllPage(1); }}>
+                  <SelectTrigger className="w-44 h-8 text-[13px]">
+                    <SelectValue placeholder="全部 OTA 账号" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部 OTA 账号</SelectItem>
+                    {mockOtaAccounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.platform} · {a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* 操作人员 */}
+                <Select value={operatorFilter} onValueChange={(v) => { setOperatorFilter(v); setAllPage(1); }}>
+                  <SelectTrigger className="w-36 h-8 text-[13px]">
+                    <SelectValue placeholder="全部操作人员" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">全部操作人员</SelectItem>
+                    <SelectItem value={CURRENT_USER}>我自己</SelectItem>
+                    {mockOperators.map((op) => (
+                      <SelectItem key={op.id} value={op.id}>{op.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* 搜索（单选字段） */}
+                <div className="flex items-center gap-0 ml-auto">
+                  <Select value={searchField} onValueChange={(v) => setSearchField(v as typeof searchField)}>
+                    <SelectTrigger className="w-28 h-8 text-[13px] rounded-r-none border-r-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="guestName">客人名</SelectItem>
+                      <SelectItem value="orderNo">订单号</SelectItem>
+                      <SelectItem value="otaOrderNo">OTA订单号</SelectItem>
+                      <SelectItem value="hotelName">酒店</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      value={searchValue}
+                      onChange={(e) => { setSearchValue(e.target.value); setAllPage(1); }}
+                      placeholder="输入关键词"
+                      className="h-8 text-[13px] pl-7 w-48 rounded-l-none"
+                    />
+                  </div>
+                </div>
+
+                {(shopFilter !== "all" ||
+                  statusFilter !== "全部" ||
+                  accountFilter !== "all" ||
+                  operatorFilter !== "all" ||
+                  dateRange?.from ||
+                  searchValue) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-[12px] text-muted-foreground"
+                    onClick={() => {
+                      setShopFilter("all");
+                      setStatusFilter("全部");
+                      setAccountFilter("all");
+                      setOperatorFilter("all");
+                      setDateRange(undefined);
+                      setSearchValue("");
+                      setAllPage(1);
+                    }}
+                  >
+                    重置
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="border-border/60 bg-card">
             <CardContent className="pt-4">
               <div className="overflow-x-auto rounded-md border border-border/50">
