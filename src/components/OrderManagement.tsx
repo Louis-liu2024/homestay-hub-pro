@@ -4,7 +4,7 @@ import type { Order, OrderStatus } from "@/lib/types";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Search, X } from "lucide-react";
+import { CalendarIcon, Search, X, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
