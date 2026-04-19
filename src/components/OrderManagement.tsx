@@ -299,6 +299,30 @@ export function OrderManagement() {
           <Card className="border-border/60 bg-card">
             <CardContent className="py-3">
               <div className="flex flex-wrap items-center gap-2">
+                {/* 搜索（放首位） */}
+                <div className="flex items-center gap-0">
+                  <Select value={searchField} onValueChange={(v) => setSearchField(v as typeof searchField)}>
+                    <SelectTrigger className="w-28 h-8 text-[13px] rounded-r-none border-r-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="guestName">客人名</SelectItem>
+                      <SelectItem value="orderNo">订单号</SelectItem>
+                      <SelectItem value="otaOrderNo">OTA订单号</SelectItem>
+                      <SelectItem value="hotelName">酒店</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      value={searchValue}
+                      onChange={(e) => { setSearchValue(e.target.value); setAllPage(1); }}
+                      placeholder="输入关键词"
+                      className="h-8 text-[13px] pl-7 w-56 rounded-l-none"
+                    />
+                  </div>
+                </div>
+
                 {/* 店铺 */}
                 <Select value={shopFilter} onValueChange={(v) => { setShopFilter(v); setAllPage(1); }}>
                   <SelectTrigger className="w-36 h-8 text-[13px]">
@@ -396,30 +420,7 @@ export function OrderManagement() {
                   </SelectContent>
                 </Select>
 
-                {/* 搜索（单选字段） */}
-                <div className="flex items-center gap-0 ml-auto">
-                  <Select value={searchField} onValueChange={(v) => setSearchField(v as typeof searchField)}>
-                    <SelectTrigger className="w-28 h-8 text-[13px] rounded-r-none border-r-0">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="guestName">客人名</SelectItem>
-                      <SelectItem value="orderNo">订单号</SelectItem>
-                      <SelectItem value="otaOrderNo">OTA订单号</SelectItem>
-                      <SelectItem value="hotelName">酒店</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                    <Input
-                      value={searchValue}
-                      onChange={(e) => { setSearchValue(e.target.value); setAllPage(1); }}
-                      placeholder="输入关键词"
-                      className="h-8 text-[13px] pl-7 w-48 rounded-l-none"
-                    />
-                  </div>
-                </div>
-
+                {/* 重置（用 ml-auto 推到右端，实现首行左右对齐） */}
                 {(shopFilter !== "all" ||
                   statusFilter !== "全部" ||
                   accountFilter !== "all" ||
@@ -429,7 +430,7 @@ export function OrderManagement() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-[12px] text-muted-foreground"
+                    className="h-8 text-[12px] text-muted-foreground ml-auto"
                     onClick={() => {
                       setShopFilter("all");
                       setStatusFilter("全部");
