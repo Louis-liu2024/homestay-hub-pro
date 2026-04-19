@@ -549,6 +549,9 @@ export function OrderManagement() {
 
         {/* ===== My orders ===== */}
         <TabsContent value="mine" className="space-y-4 mt-0">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[12px] text-muted-foreground">共 <b className="text-foreground">{mineList.length}</b> 条订单</span>
+          </div>
           <Card className="border-border/60 bg-card">
             <CardContent className="pt-4">
               <div className="overflow-x-auto rounded-md border border-border/50">
