@@ -99,6 +99,11 @@ export function OrderManagement() {
   // ---- All orders state ----
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "全部">("全部");
   const [shopFilter, setShopFilter] = useState("all");
+  const [accountFilter, setAccountFilter] = useState("all");
+  const [operatorFilter, setOperatorFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [searchField, setSearchField] = useState<"guestName" | "orderNo" | "otaOrderNo" | "hotelName">("guestName");
+  const [searchValue, setSearchValue] = useState("");
   const [allPage, setAllPage] = useState(1);
   const [allPageSize, setAllPageSize] = useState(10);
 
