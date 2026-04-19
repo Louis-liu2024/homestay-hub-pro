@@ -222,135 +222,149 @@ export function OtaAccountManagement() {
   const operatorById = (id: string) => mockOperators.find((o) => o.id === id);
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">OTA账号</h1>
-          <p className="text-sm text-muted-foreground mt-1">管理各 OTA 平台账号、密码、下单上限及操作人员分配</p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-1.5" /> 新建账号
+    <div className="p-5 md:p-7 space-y-4 text-[13px]">
+      <div className="flex items-center justify-end">
+        <Button onClick={openCreate} size="sm" className="h-8">
+          <Plus className="h-3.5 w-3.5 mr-1" /> 新建账号
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card><CardContent className="p-4">
-          <div className="text-xs text-muted-foreground">账号总数</div>
-          <div className="text-2xl font-bold mt-1">{stats.total}</div>
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="border-border/60 bg-card"><CardContent className="p-3">
+          <div className="text-[11px] text-muted-foreground uppercase tracking-wider">账号总数</div>
+          <div className="text-2xl font-bold tracking-tight mt-1">{stats.total}</div>
         </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <div className="text-xs text-muted-foreground">覆盖平台</div>
-          <div className="text-2xl font-bold mt-1">{stats.platforms}</div>
+        <Card className="border-border/60 bg-card"><CardContent className="p-3">
+          <div className="text-[11px] text-muted-foreground uppercase tracking-wider">覆盖平台</div>
+          <div className="text-2xl font-bold tracking-tight mt-1">{stats.platforms}</div>
         </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <div className="text-xs text-muted-foreground">累计下单</div>
-          <div className="text-2xl font-bold mt-1">{stats.totalOrders.toLocaleString()}</div>
+        <Card className="border-border/60 bg-card"><CardContent className="p-3">
+          <div className="text-[11px] text-muted-foreground uppercase tracking-wider">累计下单</div>
+          <div className="text-2xl font-bold tracking-tight mt-1">{stats.totalOrders.toLocaleString()}</div>
         </CardContent></Card>
-        <Card><CardContent className="p-4">
-          <div className="text-xs text-muted-foreground">平均日单量</div>
-          <div className="text-2xl font-bold mt-1">{stats.avgDaily}</div>
+        <Card className="border-border/60 bg-card"><CardContent className="p-3">
+          <div className="text-[11px] text-muted-foreground uppercase tracking-wider">平均日单量</div>
+          <div className="text-2xl font-bold tracking-tight mt-1">{stats.avgDaily}</div>
         </CardContent></Card>
       </div>
 
-      <Card>
-        <CardContent className="p-4 space-y-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <Input
-              placeholder="搜索账号名 / 登录账号 / 手机号"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-xs"
-            />
+      {/* Filter bar */}
+      <Card className="border-border/60 bg-card">
+        <CardContent className="py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* 搜索（放首位） */}
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="搜索账号名 / 登录账号 / 手机号"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-8 text-[13px] pl-7 w-64"
+              />
+            </div>
+
+            {/* 平台筛选 */}
             <Select value={platformFilter} onValueChange={setPlatformFilter}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-32 h-8 text-[13px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">全部平台</SelectItem>
                 {PLATFORMS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
               </SelectContent>
             </Select>
+
             {selectedIds.length > 0 && (
-              <div className="flex items-center gap-2 ml-2 px-3 py-1.5 rounded-md bg-accent/60 border">
-                <span className="text-sm">已选 <b>{selectedIds.length}</b> 项</span>
-                <Button size="sm" variant="default" onClick={openBatchAssign}>
-                  <UserPlus className="h-3.5 w-3.5 mr-1" /> 批量分配操作人员
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-accent/60 border border-border/60">
+                <span className="text-[12px]">已选 <b>{selectedIds.length}</b> 项</span>
+                <Button size="sm" className="h-7 text-[12px]" onClick={openBatchAssign}>
+                  <UserPlus className="h-3.5 w-3.5 mr-1" /> 批量分配
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => setSelectedIds([])}>
+                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setSelectedIds([])}>
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
             )}
-            <div className="ml-auto text-sm text-muted-foreground">共 {filtered.length} 个账号</div>
-          </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10">
-                  <Checkbox
-                    checked={allChecked ? true : someChecked ? 'indeterminate' : false}
-                    onCheckedChange={toggleAll}
-                  />
-                </TableHead>
-                <TableHead>账号名</TableHead>
-                <TableHead>平台</TableHead>
-                <TableHead>会员等级</TableHead>
-                <TableHead>登录账号</TableHead>
-                <TableHead className="text-right">总下单量</TableHead>
-                <TableHead className="text-right">日均下单</TableHead>
-                <TableHead>下单上限 (日/周/月)</TableHead>
-                <TableHead>绑定手机</TableHead>
-                <TableHead>创建时间</TableHead>
-                <TableHead className="text-right w-[140px]">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((a) => (
-                <TableRow key={a.id} className="group">
-                  <TableCell>
+            {/* 右侧统计：用 ml-auto 实现首行左右两端对齐，换行时仍贴右 */}
+            <div className="ml-auto text-[12px] text-muted-foreground">共 {filtered.length} 个账号</div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Table */}
+      <Card className="border-border/60 bg-card">
+        <CardContent className="pt-4">
+          <div className="overflow-x-auto rounded-md border border-border/50">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40 border-border/40 hover:bg-muted/40">
+                  <TableHead className="w-10 h-9">
                     <Checkbox
-                      checked={selectedIds.includes(a.id)}
-                      onCheckedChange={() => toggleOne(a.id)}
+                      checked={allChecked ? true : someChecked ? 'indeterminate' : false}
+                      onCheckedChange={toggleAll}
                     />
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      className="font-medium text-left hover:text-primary hover:underline underline-offset-2"
-                      onClick={() => setDetail(a)}
-                    >
-                      {a.name}
-                    </button>
-                  </TableCell>
-                  <TableCell><Badge variant="outline">{a.platform}</Badge></TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={levelStyles[a.memberLevel]}>{a.memberLevel}</Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{a.loginAccount || '——'}</TableCell>
-                  <TableCell className="text-right tabular-nums">{a.totalOrders.toLocaleString()}</TableCell>
-                  <TableCell className="text-right tabular-nums">{a.dailyAvgOrders}</TableCell>
-                  <TableCell className="text-xs tabular-nums text-muted-foreground">
-                    {a.dailyLimit} / {a.weeklyLimit} / {a.monthlyLimit}
-                  </TableCell>
-                  <TableCell className="text-xs">{a.phone}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{a.createdAt}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center gap-0.5 justify-end">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(a, 'limits')} title="配置上限">
-                        <Settings2 className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)} title="删除">
-                        <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">账号名</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">平台</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">会员等级</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">登录账号</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right">总下单量</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right">日均下单</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">下单上限 (日/周/月)</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">绑定手机</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">创建时间</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right w-[100px]">操作</TableHead>
                 </TableRow>
-              ))}
-              {filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={11} className="text-center text-muted-foreground py-10">暂无账号</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((a, idx) => (
+                  <TableRow key={a.id} className={`border-border/30 hover:bg-accent/40 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}>
+                    <TableCell className="py-2.5">
+                      <Checkbox
+                        checked={selectedIds.includes(a.id)}
+                        onCheckedChange={() => toggleOne(a.id)}
+                      />
+                    </TableCell>
+                    <TableCell className="py-2.5">
+                      <button
+                        className="text-[13px] font-medium text-left hover:text-primary hover:underline underline-offset-2"
+                        onClick={() => setDetail(a)}
+                      >
+                        {a.name}
+                      </button>
+                    </TableCell>
+                    <TableCell className="py-2.5"><Badge variant="outline" className="text-[11px] h-5 border-border/60">{a.platform}</Badge></TableCell>
+                    <TableCell className="py-2.5">
+                      <Badge variant="outline" className={`text-[11px] h-5 ${levelStyles[a.memberLevel]}`}>{a.memberLevel}</Badge>
+                    </TableCell>
+                    <TableCell className="text-[12px] text-muted-foreground py-2.5">{a.loginAccount || '——'}</TableCell>
+                    <TableCell className="text-right text-[13px] tabular-nums py-2.5">{a.totalOrders.toLocaleString()}</TableCell>
+                    <TableCell className="text-right text-[13px] tabular-nums py-2.5">{a.dailyAvgOrders}</TableCell>
+                    <TableCell className="text-[12px] tabular-nums text-muted-foreground py-2.5">
+                      {a.dailyLimit} / {a.weeklyLimit} / {a.monthlyLimit}
+                    </TableCell>
+                    <TableCell className="text-[12px] py-2.5">{a.phone}</TableCell>
+                    <TableCell className="text-[12px] text-muted-foreground py-2.5">{a.createdAt}</TableCell>
+                    <TableCell className="text-right py-2.5">
+                      <div className="flex items-center gap-0.5 justify-end">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEdit(a, 'limits')} title="配置上限">
+                          <Settings2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => handleDelete(a.id)} title="删除">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filtered.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={11} className="text-center text-muted-foreground text-[13px] py-10">暂无账号</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
