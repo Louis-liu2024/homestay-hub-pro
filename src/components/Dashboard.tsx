@@ -405,48 +405,50 @@ export function Dashboard() {
 
   return (
     <div className="p-5 md:p-7 space-y-6 max-w-[1600px] mx-auto text-[13px]">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[11px] font-semibold">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          实时数据
-        </span>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Select value={shopFilter} onValueChange={setShopFilter}>
-            <SelectTrigger className="w-36 h-8 text-[13px] bg-white border-border/70 shadow-sm">
-              <SelectValue placeholder="全部店铺" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部店铺</SelectItem>
-              {mockShops.map((s) => (
-                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={provinceFilter} onValueChange={setProvinceFilter}>
-            <SelectTrigger className="w-28 h-8 text-[13px] bg-white border-border/70 shadow-sm">
-              <SelectValue placeholder="全部省份" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">全部省份</SelectItem>
-              {mockProvinces.map((p) => (
-                <SelectItem key={p} value={p}>{p}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="w-28 h-8 text-[13px] bg-white border-border/70 shadow-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1d">今日</SelectItem>
-              <SelectItem value="7d">近7天</SelectItem>
-              <SelectItem value="30d">近30天</SelectItem>
-              <SelectItem value="90d">近90天</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      {/* Filter bar */}
+      <Card className="border-border/60 bg-card">
+        <CardContent className="py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={shopFilter} onValueChange={setShopFilter}>
+              <SelectTrigger className="w-36 h-8 text-[13px]">
+                <SelectValue placeholder="全部店铺" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部店铺</SelectItem>
+                {mockShops.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={provinceFilter} onValueChange={setProvinceFilter}>
+              <SelectTrigger className="w-32 h-8 text-[13px]">
+                <SelectValue placeholder="全部省份" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部省份</SelectItem>
+                {mockProvinces.map((p) => (
+                  <SelectItem key={p} value={p}>{p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger className="w-28 h-8 text-[13px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1d">今日</SelectItem>
+                <SelectItem value="7d">近7天</SelectItem>
+                <SelectItem value="30d">近30天</SelectItem>
+                <SelectItem value="90d">近90天</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="ml-auto inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[11px] font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              实时数据
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">

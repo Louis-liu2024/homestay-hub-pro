@@ -81,22 +81,28 @@ export function PriceCalculator() {
 
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
-      <div className="flex items-center justify-end gap-2">
-        <Select value={shopFilter} onValueChange={setShopFilter}>
-          <SelectTrigger className="w-40 h-8 text-[13px] bg-card border-border/60">
-            <SelectValue placeholder="全部店铺" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">全部店铺</SelectItem>
-            {mockShops.map(s => (
-              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button onClick={openCreate} size="sm" className="h-8">
-          <Plus className="h-3.5 w-3.5 mr-1" />新增规则
-        </Button>
-      </div>
+      {/* Filter bar */}
+      <Card className="border-border/60 bg-card">
+        <CardContent className="py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={shopFilter} onValueChange={setShopFilter}>
+              <SelectTrigger className="w-40 h-8 text-[13px]">
+                <SelectValue placeholder="全部店铺" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部店铺</SelectItem>
+                {mockShops.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="ml-auto text-[12px] text-muted-foreground">共 {filtered.length} 条规则</span>
+            <Button onClick={openCreate} size="sm" className="h-8">
+              <Plus className="h-3.5 w-3.5 mr-1" />新增规则
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className="border-border/60 bg-card">
         <CardHeader className="pb-2">
