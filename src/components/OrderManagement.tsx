@@ -232,6 +232,23 @@ export function OrderManagement() {
     setCompleteDialog(null);
   };
 
+  const handleExportAll = () => {
+    const headers = ["订单号", "酒店", "房型", "入住", "退房", "客人", "金额", "状态", "OTA订单号"];
+    const rows = allFiltered.map((o) => [
+      o.orderNo, o.hotelName, o.roomType, o.checkInDate, o.checkOutDate,
+      o.guestName, o.amount, o.status, o.otaOrderNo || "",
+    ]);
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `订单_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`已导出 ${allFiltered.length} 条订单`);
+  };
+
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
       <Tabs value={tab} onValueChange={(v) => setTab(v as "all" | "mine")} className="space-y-4">
