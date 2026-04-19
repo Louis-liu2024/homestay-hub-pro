@@ -130,13 +130,28 @@ export function OrderManagement() {
   }, [orders]);
 
   // ---- Filtered ----
-  const allFiltered = useMemo(
-    () =>
-      orders
-        .filter((o) => statusFilter === "全部" || o.status === statusFilter)
-        .filter((o) => shopFilter === "all" || o.shopId === shopFilter),
-    [orders, statusFilter, shopFilter],
-  );
+  const allFiltered = useMemo(() => {
+    const kw = searchValue.trim().toLowerCase();
+    const fromTs = dateRange?.from ? new Date(dateRange.from.setHours(0, 0, 0, 0)).getTime() : null;
+    const toTs = dateRange?.to ? new Date(dateRange.to.setHours(23, 59, 59, 999)).getTime() : null;
+    return orders
+      .filter((o) => statusFilter === "全部" || o.status === statusFilter)
+      .filter((o) => shopFilter === "all" || o.shopId === shopFilter)
+      .filter((o) => accountFilter === "all" || o.accountId === accountFilter)
+      .filter((o) => operatorFilter === "all" || o.claimedBy === operatorFilter)
+      .filter((o) => {
+        if (!fromTs && !toTs) return true;
+        const t = new Date(o.createdAt).getTime();
+        if (fromTs && t < fromTs) return false;
+        if (toTs && t > toTs) return false;
+        return true;
+      })
+      .filter((o) => {
+        if (!kw) return true;
+        const v = (o[searchField] as string | undefined) || "";
+        return v.toLowerCase().includes(kw);
+      });
+  }, [orders, statusFilter, shopFilter, accountFilter, operatorFilter, dateRange, searchField, searchValue]);
   const allPaged = useMemo(
     () => allFiltered.slice((allPage - 1) * allPageSize, allPage * allPageSize),
     [allFiltered, allPage, allPageSize],
