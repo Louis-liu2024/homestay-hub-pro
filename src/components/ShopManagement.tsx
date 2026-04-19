@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Plus, Pencil, Trash2, Key, Globe, Store } from "lucide-react";
+import { Plus, Pencil, Trash2, Key, Globe, Store, Search } from "lucide-react";
 import { toast } from "sonner";
 
 const allChannels: Channel[] = ['携程', '美团', 'Booking', '飞猪', '去哪儿', 'Agoda', '途家', '小红书'];
@@ -26,6 +26,9 @@ const regions = ['华东', '华南', '华北', '华中', '西南', '西北', '�
 
 export function ShopManagement() {
   const [shops, setShops] = useState<Shop[]>(mockShops);
+  const [search, setSearch] = useState("");
+  const [regionFilter, setRegionFilter] = useState<string>("all");
+  const [channelFilter, setChannelFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Shop | null>(null);
   const [apiDialogOpen, setApiDialogOpen] = useState(false);
@@ -101,16 +104,53 @@ export function ShopManagement() {
     toast.success("API配置已删除");
   };
 
+  const filteredShops = shops.filter((s) => {
+    const kw = search.trim().toLowerCase();
+    const matchKw = !kw || s.name.toLowerCase().includes(kw) || s.city.toLowerCase().includes(kw) || s.address.toLowerCase().includes(kw);
+    const matchRegion = regionFilter === "all" || s.region === regionFilter;
+    const matchChannel = channelFilter === "all" || s.channels.includes(channelFilter as Channel);
+    return matchKw && matchRegion && matchChannel;
+  });
+
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
-      <div className="flex items-center justify-end">
-        <Button onClick={openCreate} size="sm" className="h-8">
-          <Plus className="h-3.5 w-3.5 mr-1" />新增店铺
-        </Button>
-      </div>
+      {/* Filter bar */}
+      <Card className="border-border/60 bg-card">
+        <CardContent className="py-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="搜索店铺名称 / 城市 / 地址"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-8 text-[13px] pl-7 w-64"
+              />
+            </div>
+            <Select value={regionFilter} onValueChange={setRegionFilter}>
+              <SelectTrigger className="w-28 h-8 text-[13px]"><SelectValue placeholder="全部地域" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部地域</SelectItem>
+                {regions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={channelFilter} onValueChange={setChannelFilter}>
+              <SelectTrigger className="w-32 h-8 text-[13px]"><SelectValue placeholder="全部渠道" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部渠道</SelectItem>
+                {allChannels.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <span className="ml-auto text-[12px] text-muted-foreground">共 {filteredShops.length} 个店铺</span>
+            <Button onClick={openCreate} size="sm" className="h-8">
+              <Plus className="h-3.5 w-3.5 mr-1" />新增店铺
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="space-y-3">
-        {shops.map(shop => (
+        {filteredShops.map(shop => (
           <Card key={shop.id} className="border-border/50 bg-card/80 card-hover">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
