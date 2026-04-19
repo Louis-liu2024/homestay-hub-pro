@@ -114,7 +114,7 @@ export function ShopManagement() {
 
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
-      {/* Filter bar */}
+      {/* Filter bar — only search + filters */}
       <Card className="border-border/60 bg-card">
         <CardContent className="py-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -141,13 +141,20 @@ export function ShopManagement() {
                 {allChannels.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
-            <span className="ml-auto text-[12px] text-muted-foreground">共 {filteredShops.length} 个店铺</span>
-            <Button onClick={openCreate} size="sm" className="h-8">
-              <Plus className="h-3.5 w-3.5 mr-1" />新增店铺
-            </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Toolbar between filter & list */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[12px] text-muted-foreground flex items-center gap-1.5">
+          <Store className="h-3.5 w-3.5 text-muted-foreground" />
+          共 <b className="text-foreground">{filteredShops.length}</b> 个店铺
+        </span>
+        <Button onClick={openCreate} size="sm" className="h-8">
+          <Plus className="h-3.5 w-3.5 mr-1" />新增店铺
+        </Button>
+      </div>
 
       <div className="space-y-3">
         {filteredShops.map(shop => (

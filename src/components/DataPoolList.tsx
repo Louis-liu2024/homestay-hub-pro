@@ -6,8 +6,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@tanstack/react-router";
-import { Search, Upload, Database, Tag, Download } from "lucide-react";
+import { Search, Upload, Tag, Download } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/DataTablePagination";
 import { PriceQueryDialog } from "@/components/PriceQueryDialog";
@@ -60,8 +63,11 @@ export function DataPoolList() {
     });
   };
 
+  const allChecked = paged.length > 0 && paged.every((h) => selected.has(h.id));
+  const someChecked = selected.size > 0 && !allChecked;
+
   const toggleAll = () => {
-    if (selected.size === paged.length) {
+    if (allChecked) {
       setSelected(new Set());
     } else {
       setSelected(new Set(paged.map((h) => h.id)));
@@ -110,7 +116,7 @@ export function DataPoolList() {
         </TabsList>
       </Tabs>
 
-      {/* Filter bar */}
+      {/* Filter bar — only search + filters */}
       <Card className="border-border/60 bg-card">
         <CardContent className="py-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -126,139 +132,133 @@ export function DataPoolList() {
                 className="h-8 text-[13px] pl-7 w-64"
               />
             </div>
-            <Badge variant="outline" className="ml-auto text-[12px] border-border/60 h-7 px-2.5">
-              <Database className="h-3 w-3 mr-1" />
-              {filtered.length} 条数据
-            </Badge>
-            <Button size="sm" variant="outline" className="h-8" onClick={handleExport}>
-              <Download className="h-3.5 w-3.5 mr-1" />导出
-            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Table */}
-      <div className="border border-border/50 rounded-lg bg-card overflow-hidden">
-        <div className="flex">
-          {/* Frozen left */}
-          <div className="shrink-0 border-r border-border/40 bg-card z-10" style={{ boxShadow: "2px 0 6px rgba(0,0,0,0.04)" }}>
-            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 px-3 gap-3">
-              <Checkbox
-                checked={selected.size === paged.length && paged.length > 0}
-                onCheckedChange={toggleAll}
-              />
-              <span className="text-[12px] font-semibold text-muted-foreground w-48">
-                酒店名称
-              </span>
-            </div>
-            {paged.map((hotel, idx) => (
-              <div
-                key={hotel.id}
-                className={`flex items-center h-12 border-b border-border/30 px-3 gap-3 hover:bg-accent/40 transition-colors ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
-              >
-                <Checkbox
-                  checked={selected.has(hotel.id)}
-                  onCheckedChange={() => toggleSelect(hotel.id)}
-                />
-                <Link
-                  to="/data-pool/$hotelId"
-                  params={{ hotelId: hotel.id }}
-                  className="text-[13px] font-medium text-foreground hover:text-primary truncate w-48 transition-colors"
-                >
-                  {hotel.name}
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          {/* Scrollable middle */}
-          <div className="flex-1 overflow-x-auto min-w-0">
-            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 min-w-[800px]">
-              <HeaderCell w="w-16">评分</HeaderCell>
-              <HeaderCell w="w-20">渠道</HeaderCell>
-              <HeaderCell w="w-20">房间量</HeaderCell>
-              <HeaderCell w="w-24">7天空房率</HeaderCell>
-              <HeaderCell w="w-40">标签</HeaderCell>
-              <HeaderCell w="w-20">城市</HeaderCell>
-              <HeaderCell w="w-24">品牌</HeaderCell>
-              <HeaderCell w="w-20">订单数</HeaderCell>
-              <HeaderCell w="w-24">均价(¥)</HeaderCell>
-            </div>
-            {paged.map((hotel, idx) => (
-              <div
-                key={hotel.id}
-                className={`flex items-center h-12 border-b border-border/30 min-w-[800px] hover:bg-accent/40 transition-colors ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
-              >
-                <DataCell w="w-16">
-                  <span className="text-[13px] font-semibold text-warning">{hotel.rating}</span>
-                </DataCell>
-                <DataCell w="w-20">
-                  <Badge variant="outline" className="text-[11px] h-5 border-border/60">{hotel.channel}</Badge>
-                </DataCell>
-                <DataCell w="w-20"><span className="text-[13px] font-mono">{hotel.roomCount}</span></DataCell>
-                <DataCell w="w-24">
-                  <span className={`text-[13px] font-mono font-medium ${hotel.vacancyRate7d > 0.5 ? "text-destructive" : "text-success"}`}>
-                    {(hotel.vacancyRate7d * 100).toFixed(0)}%
-                  </span>
-                </DataCell>
-                <DataCell w="w-40">
-                  <div className="flex gap-1 flex-wrap">
-                    {hotel.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-[11px] h-4 px-1.5 bg-primary/10 text-primary border-0">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </DataCell>
-                <DataCell w="w-20"><span className="text-[13px]">{hotel.city}</span></DataCell>
-                <DataCell w="w-24"><span className="text-[13px]">{hotel.brand}</span></DataCell>
-                <DataCell w="w-20"><span className="text-[13px] font-mono">{hotel.totalOrders}</span></DataCell>
-                <DataCell w="w-24"><span className="text-[13px] font-mono font-medium">¥{hotel.avgPrice}</span></DataCell>
-              </div>
-            ))}
-          </div>
-
-          {/* Frozen right */}
-          <div className="shrink-0 border-l border-border/40 bg-card z-10" style={{ boxShadow: "-2px 0 6px rgba(0,0,0,0.04)" }}>
-            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 px-3">
-              <span className="text-[12px] font-semibold text-muted-foreground">操作</span>
-            </div>
-            {paged.map((hotel, idx) => (
-              <div
-                key={hotel.id}
-                className={`flex items-center h-12 border-b border-border/30 px-2 gap-1 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
-              >
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
-                  onClick={() => setPriceQueryHotel(hotel)}
-                >
-                  <Tag className="h-3.5 w-3.5" />
-                  <span className="ml-1">查价</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
-                  onClick={() => setPublishHotel(hotel)}
-                >
-                  <Upload className="h-3.5 w-3.5" />
-                  <span className="ml-1">发布</span>
-                </Button>
-              </div>
-            ))}
-          </div>
+      {/* Toolbar between filter & list: count(left) + actions(right) */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[12px] text-muted-foreground">共 <b className="text-foreground">{filtered.length}</b> 条数据</span>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="h-8" onClick={handleExport}>
+            <Download className="h-3.5 w-3.5 mr-1" />导出
+          </Button>
         </div>
       </div>
 
-      <DataTablePagination
-        total={filtered.length}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-      />
+      {/* Table */}
+      <Card className="border-border/60 bg-card">
+        <CardContent className="pt-4">
+          <div className="overflow-x-auto rounded-md border border-border/50">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40 border-border/40 hover:bg-muted/40">
+                  <TableHead className="w-10 h-9">
+                    <Checkbox
+                      checked={allChecked ? true : someChecked ? "indeterminate" : false}
+                      onCheckedChange={toggleAll}
+                    />
+                  </TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">酒店名称</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">评分</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">渠道</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right">房间量</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right">7天空房率</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">标签</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">城市</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9">品牌</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right">订单数</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right">均价(¥)</TableHead>
+                  <TableHead className="text-[12px] font-semibold text-muted-foreground h-9 text-right">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paged.map((hotel, idx) => (
+                  <TableRow
+                    key={hotel.id}
+                    className={`border-border/30 hover:bg-accent/40 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
+                  >
+                    <TableCell className="py-2.5">
+                      <Checkbox
+                        checked={selected.has(hotel.id)}
+                        onCheckedChange={() => toggleSelect(hotel.id)}
+                      />
+                    </TableCell>
+                    <TableCell className="py-2.5">
+                      <Link
+                        to="/data-pool/$hotelId"
+                        params={{ hotelId: hotel.id }}
+                        className="text-[13px] font-medium text-foreground hover:text-primary hover:underline underline-offset-2 transition-colors"
+                      >
+                        {hotel.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="py-2.5">
+                      <span className="text-[13px] font-semibold text-warning">{hotel.rating}</span>
+                    </TableCell>
+                    <TableCell className="py-2.5">
+                      <Badge variant="outline" className="text-[11px] h-5 border-border/60">{hotel.channel}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right text-[13px] tabular-nums py-2.5">{hotel.roomCount}</TableCell>
+                    <TableCell className="text-right py-2.5">
+                      <span className={`text-[13px] tabular-nums font-medium ${hotel.vacancyRate7d > 0.5 ? "text-destructive" : "text-success"}`}>
+                        {(hotel.vacancyRate7d * 100).toFixed(0)}%
+                      </span>
+                    </TableCell>
+                    <TableCell className="py-2.5">
+                      <div className="flex gap-1 flex-wrap max-w-[180px]">
+                        {hotel.tags.map((tag) => (
+                          <Badge key={tag} variant="secondary" className="text-[11px] h-4 px-1.5 bg-primary/10 text-primary border-0">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-[13px] py-2.5">{hotel.city}</TableCell>
+                    <TableCell className="text-[13px] py-2.5">{hotel.brand}</TableCell>
+                    <TableCell className="text-right text-[13px] tabular-nums py-2.5">{hotel.totalOrders}</TableCell>
+                    <TableCell className="text-right text-[13px] tabular-nums font-medium py-2.5">¥{hotel.avgPrice}</TableCell>
+                    <TableCell className="text-right py-2.5">
+                      <div className="flex items-center justify-end gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
+                          onClick={() => setPriceQueryHotel(hotel)}
+                        >
+                          <Tag className="h-3.5 w-3.5 mr-1" />查价
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
+                          onClick={() => setPublishHotel(hotel)}
+                        >
+                          <Upload className="h-3.5 w-3.5 mr-1" />发布
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {paged.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={12} className="text-center text-muted-foreground text-[13px] py-10">
+                      暂无数据
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <DataTablePagination
+            total={filtered.length}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </CardContent>
+      </Card>
 
       {/* Floating batch publish */}
       {selected.size > 0 && (
@@ -285,19 +285,5 @@ export function DataPoolList() {
         onOpenChange={(o) => !o && setPublishHotel(null)}
       />
     </div>
-  );
-}
-
-function HeaderCell({ children, w }: { children: React.ReactNode; w: string }) {
-  return (
-    <div className={`${w} shrink-0 px-3 flex items-center text-[12px] font-semibold text-muted-foreground`}>
-      {children}
-    </div>
-  );
-}
-
-function DataCell({ children, w }: { children: React.ReactNode; w: string }) {
-  return (
-    <div className={`${w} shrink-0 px-3 flex items-center`}>{children}</div>
   );
 }
