@@ -223,12 +223,6 @@ export function OtaAccountManagement() {
 
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
-      <div className="flex items-center justify-end">
-        <Button onClick={openCreate} size="sm" className="h-8">
-          <Plus className="h-3.5 w-3.5 mr-1" /> 新建账号
-        </Button>
-      </div>
-
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card className="border-border/60 bg-card"><CardContent className="p-3">
@@ -249,7 +243,7 @@ export function OtaAccountManagement() {
         </CardContent></Card>
       </div>
 
-      {/* Filter bar */}
+      {/* Filter bar — only search + filters */}
       <Card className="border-border/60 bg-card">
         <CardContent className="py-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -272,24 +266,30 @@ export function OtaAccountManagement() {
                 {PLATFORMS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
               </SelectContent>
             </Select>
-
-            {selectedIds.length > 0 && (
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-accent/60 border border-border/60">
-                <span className="text-[12px]">已选 <b>{selectedIds.length}</b> 项</span>
-                <Button size="sm" className="h-7 text-[12px]" onClick={openBatchAssign}>
-                  <UserPlus className="h-3.5 w-3.5 mr-1" /> 批量分配
-                </Button>
-                <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setSelectedIds([])}>
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )}
-
-            {/* 右侧统计：用 ml-auto 实现首行左右两端对齐，换行时仍贴右 */}
-            <div className="ml-auto text-[12px] text-muted-foreground">共 {filtered.length} 个账号</div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Toolbar between filter & list */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <span className="text-[12px] text-muted-foreground">共 <b className="text-foreground">{filtered.length}</b> 个账号</span>
+          {selectedIds.length > 0 && (
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-accent/60 border border-border/60">
+              <span className="text-[12px]">已选 <b>{selectedIds.length}</b> 项</span>
+              <Button size="sm" className="h-7 text-[12px]" onClick={openBatchAssign}>
+                <UserPlus className="h-3.5 w-3.5 mr-1" /> 批量分配
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setSelectedIds([])}>
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
+        </div>
+        <Button onClick={openCreate} size="sm" className="h-8">
+          <Plus className="h-3.5 w-3.5 mr-1" /> 新建账号
+        </Button>
+      </div>
 
       {/* Table */}
       <Card className="border-border/60 bg-card">
