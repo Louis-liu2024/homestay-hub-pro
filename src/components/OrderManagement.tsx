@@ -247,33 +247,6 @@ export function OrderManagement() {
             </TabsTrigger>
           </TabsList>
 
-          {tab === "all" && (
-            <div className="flex items-center gap-2">
-              <Select value={shopFilter} onValueChange={(v) => { setShopFilter(v); setAllPage(1); }}>
-                <SelectTrigger className="w-40 h-8 text-[13px] bg-card border-border/60">
-                  <SelectValue placeholder="全部店铺" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部店铺</SelectItem>
-                  {mockShops.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as OrderStatus | "全部"); setAllPage(1); }}>
-                <SelectTrigger className="w-32 h-8 text-[13px] bg-card border-border/60">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="全部">全部</SelectItem>
-                  <SelectItem value="待领取">待领取</SelectItem>
-                  <SelectItem value="已领取">已领取</SelectItem>
-                  <SelectItem value="已完成">已完成</SelectItem>
-                  <SelectItem value="已取消">已取消</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
 
         {/* ===== All orders ===== */}
