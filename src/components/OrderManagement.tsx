@@ -465,6 +465,14 @@ export function OrderManagement() {
             </CardContent>
           </Card>
 
+          {/* Toolbar between filter & list */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[12px] text-muted-foreground">共 <b className="text-foreground">{allFiltered.length}</b> 条订单</span>
+            <Button size="sm" variant="outline" className="h-8" onClick={handleExportAll}>
+              <Download className="h-3.5 w-3.5 mr-1" />导出
+            </Button>
+          </div>
+
           <Card className="border-border/60 bg-card">
             <CardContent className="pt-4">
               <div className="overflow-x-auto rounded-md border border-border/50">
