@@ -7,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -45,13 +43,73 @@ function loadShops(): Shop[] {
   return mockShops;
 }
 
-interface ShopRules {
-  bookingRule: string;
-  markupRule: string;
-  cancelPolicy: string;
-  contactInfo: string;
-  checkInRule: string;
+interface MarkupRule {
+  id: string;
+  supplier: string;
+  channel: string;
+  hotelTag: string;
+  priceMin: number;
+  priceMax: number;
+  otherCondition?: string;
+  markupPercent: number;
+  markupFixed: number;
+  priority: number;
 }
+
+interface BlockRule {
+  id: string;
+  supplier: string;
+  channel: string;
+  hotelTag: string;
+  reason: string;
+  priority: number;
+}
+
+interface CancelRule {
+  id: string;
+  condition: string;
+  rule: string;
+  priority: number;
+}
+
+interface AutoOrderRule {
+  id: string;
+  condition: string;
+  enabled: boolean;
+}
+
+interface CheckInScene {
+  enabled: boolean;
+  hour: number;
+  mode: "direct" | "ifNonCancelable";
+}
+
+interface ShopRules {
+  advanceBookingHours: number;
+  markupRules: MarkupRule[];
+  blockRules: BlockRule[];
+  cancelRules: CancelRule[];
+  autoOrderRules: AutoOrderRule[];
+  contactPhone: string;
+  scene1: CheckInScene;
+  scene2: { enabled: boolean; hour: number };
+}
+
+const DEFAULT_RULES: ShopRules = {
+  advanceBookingHours: 0,
+  markupRules: [
+    { id: "m1", supplier: "艺龙", channel: "飞猪", hotelTag: "扶摇专用", priceMin: 0, priceMax: 55, markupPercent: 0, markupFixed: -7, priority: 0 },
+    { id: "m2", supplier: "艺龙", channel: "飞猪", hotelTag: "扶摇专用", priceMin: 55, priceMax: 9999, markupPercent: 20, markupFixed: 0, priority: 0 },
+  ],
+  blockRules: [],
+  cancelRules: [
+    { id: "c1", condition: "艺龙 且 供应商取消类型:不可取消", rule: "不可取消", priority: 0 },
+  ],
+  autoOrderRules: [],
+  contactPhone: "",
+  scene1: { enabled: true, hour: 0, mode: "direct" },
+  scene2: { enabled: true, hour: 19 },
+};
 
 const PALETTE = [
   "from-blue-500 to-blue-600",
@@ -95,18 +153,17 @@ export function ShopDetail() {
   const [rules, setRules] = useState<ShopRules>(() => {
     try {
       const raw = localStorage.getItem(`${RULES_KEY}.${shopId}`);
-      if (raw) return JSON.parse(raw);
+      if (raw) return { ...DEFAULT_RULES, ...JSON.parse(raw) };
     } catch {
       /* ignore */
     }
-    return {
-      bookingRule: "支持提前 30 天预定;同一身份证最多预定 5 间房",
-      markupRule: "周末加价 10%;节假日加价 20%",
-      cancelPolicy: "入住前 24 小时免费取消;之后扣除首晚房费",
-      contactInfo: "联系电话:400-888-0000\n邮箱:contact@hotel.com",
-      checkInRule: "入住时间:14:00 后\n离店时间:12:00 前\n需出示身份证原件",
-    };
+    return DEFAULT_RULES;
   });
+
+  const persistRules = (next: ShopRules) => {
+    setRules(next);
+    localStorage.setItem(`${RULES_KEY}.${shopId}`, JSON.stringify(next));
+  };
 
   if (!shop) {
     return (
@@ -196,7 +253,7 @@ export function ShopDetail() {
   };
 
   return (
-    <div className="p-5 md:p-7 space-y-4 text-[13px] max-w-5xl">
+    <div className="p-5 md:p-7 space-y-4 text-[13px] max-w-6xl">
       <Button
         variant="ghost"
         size="sm"
@@ -355,58 +412,537 @@ export function ShopDetail() {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold">店铺规则配置</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="booking">
-            <TabsList className="h-9">
-              <TabsTrigger value="booking" className="text-xs">提前预定</TabsTrigger>
-              <TabsTrigger value="markup" className="text-xs">加价规则</TabsTrigger>
-              <TabsTrigger value="cancel" className="text-xs">取消政策</TabsTrigger>
-              <TabsTrigger value="contact" className="text-xs">联系方式</TabsTrigger>
-              <TabsTrigger value="checkin" className="text-xs">入住规则</TabsTrigger>
-            </TabsList>
+        <CardContent className="space-y-5">
+          {/* 提前预定 */}
+          <RuleRow label="提前预定">
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={0}
+                max={23}
+                className="h-8 w-24 text-[13px]"
+                value={rules.advanceBookingHours}
+                onChange={(e) =>
+                  persistRules({ ...rules, advanceBookingHours: Number(e.target.value) || 0 })
+                }
+              />
+              <span className="text-[12px] text-muted-foreground">
+                小时 (请填写0-23之间的数字)
+              </span>
+            </div>
+          </RuleRow>
 
-            <TabsContent value="booking" className="mt-4">
-              <Textarea
-                className="min-h-[160px] text-[13px]"
-                value={rules.bookingRule}
-                onChange={(e) => updateRule("bookingRule", e.target.value)}
-                placeholder="例如：支持提前 30 天预定..."
+          {/* 加价规则 */}
+          <RuleRow label="加价规则">
+            <div className="border border-border/50 rounded-md overflow-x-auto">
+              <table className="w-full text-[12px] min-w-[860px]">
+                <thead className="bg-muted/40">
+                  <tr className="text-left text-muted-foreground">
+                    <th className="px-2 py-2 font-medium">供应商</th>
+                    <th className="px-2 py-2 font-medium">售卖渠道</th>
+                    <th className="px-2 py-2 font-medium">酒店标签</th>
+                    <th className="px-2 py-2 font-medium">价格区间</th>
+                    <th className="px-2 py-2 font-medium">其他条件</th>
+                    <th className="px-2 py-2 font-medium">加价</th>
+                    <th className="px-2 py-2 font-medium">优先级</th>
+                    <th className="px-2 py-2 font-medium w-24">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rules.markupRules.map((r, i) => (
+                    <tr key={r.id} className="border-t border-border/40">
+                      <td className="px-2 py-2">
+                        <Input
+                          className="h-7 text-[12px]"
+                          value={r.supplier}
+                          onChange={(e) => {
+                            const next = [...rules.markupRules];
+                            next[i] = { ...r, supplier: e.target.value };
+                            persistRules({ ...rules, markupRules: next });
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          className="h-7 text-[12px]"
+                          value={r.channel}
+                          onChange={(e) => {
+                            const next = [...rules.markupRules];
+                            next[i] = { ...r, channel: e.target.value };
+                            persistRules({ ...rules, markupRules: next });
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          className="h-7 text-[12px]"
+                          value={r.hotelTag}
+                          onChange={(e) => {
+                            const next = [...rules.markupRules];
+                            next[i] = { ...r, hotelTag: e.target.value };
+                            persistRules({ ...rules, markupRules: next });
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            className="h-7 w-16 text-[12px]"
+                            value={r.priceMin}
+                            onChange={(e) => {
+                              const next = [...rules.markupRules];
+                              next[i] = { ...r, priceMin: Number(e.target.value) || 0 };
+                              persistRules({ ...rules, markupRules: next });
+                            }}
+                          />
+                          <span className="text-muted-foreground">-</span>
+                          <Input
+                            type="number"
+                            className="h-7 w-20 text-[12px]"
+                            value={r.priceMax}
+                            onChange={(e) => {
+                              const next = [...rules.markupRules];
+                              next[i] = { ...r, priceMax: Number(e.target.value) || 0 };
+                              persistRules({ ...rules, markupRules: next });
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          className="h-7 text-[12px]"
+                          placeholder="-"
+                          value={r.otherCondition ?? ""}
+                          onChange={(e) => {
+                            const next = [...rules.markupRules];
+                            next[i] = { ...r, otherCondition: e.target.value };
+                            persistRules({ ...rules, markupRules: next });
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            className="h-7 w-16 text-[12px]"
+                            value={r.markupPercent}
+                            onChange={(e) => {
+                              const next = [...rules.markupRules];
+                              next[i] = { ...r, markupPercent: Number(e.target.value) || 0 };
+                              persistRules({ ...rules, markupRules: next });
+                            }}
+                          />
+                          <span className="text-muted-foreground">%</span>
+                          <span className="text-muted-foreground">+</span>
+                          <Input
+                            type="number"
+                            className="h-7 w-16 text-[12px]"
+                            value={r.markupFixed}
+                            onChange={(e) => {
+                              const next = [...rules.markupRules];
+                              next[i] = { ...r, markupFixed: Number(e.target.value) || 0 };
+                              persistRules({ ...rules, markupRules: next });
+                            }}
+                          />
+                        </div>
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          type="number"
+                          className="h-7 w-16 text-[12px]"
+                          value={r.priority}
+                          onChange={(e) => {
+                            const next = [...rules.markupRules];
+                            next[i] = { ...r, priority: Number(e.target.value) || 0 };
+                            persistRules({ ...rules, markupRules: next });
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-[11px] text-destructive hover:text-destructive"
+                          onClick={() => {
+                            persistRules({
+                              ...rules,
+                              markupRules: rules.markupRules.filter((x) => x.id !== r.id),
+                            });
+                          }}
+                        >
+                          删除
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  {rules.markupRules.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-2 py-6 text-center text-muted-foreground">
+                        暂无规则
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-2 flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[12px]"
+                onClick={() =>
+                  persistRules({
+                    ...rules,
+                    markupRules: [
+                      ...rules.markupRules,
+                      {
+                        id: `m${Date.now()}`,
+                        supplier: "",
+                        channel: "",
+                        hotelTag: "",
+                        priceMin: 0,
+                        priceMax: 9999,
+                        markupPercent: 0,
+                        markupFixed: 0,
+                        priority: 0,
+                      },
+                    ],
+                  })
+                }
+              >
+                添加规则
+              </Button>
+              <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
+            </div>
+          </RuleRow>
+
+          {/* 屏蔽规则 */}
+          <RuleRow label="屏蔽规则">
+            {rules.blockRules.length === 0 ? (
+              <p className="text-[12px] text-muted-foreground">暂无规则</p>
+            ) : (
+              <ul className="text-[12px] space-y-1">
+                {rules.blockRules.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between border border-border/40 rounded px-2 py-1">
+                    <span>{r.supplier} · {r.channel} · {r.hotelTag} — {r.reason}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-[11px] text-destructive"
+                      onClick={() =>
+                        persistRules({
+                          ...rules,
+                          blockRules: rules.blockRules.filter((x) => x.id !== r.id),
+                        })
+                      }
+                    >
+                      删除
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-2 flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[12px]"
+                onClick={() =>
+                  persistRules({
+                    ...rules,
+                    blockRules: [
+                      ...rules.blockRules,
+                      { id: `b${Date.now()}`, supplier: "艺龙", channel: "飞猪", hotelTag: "扶摇专用", reason: "暂停售卖", priority: 0 },
+                    ],
+                  })
+                }
+              >
+                添加规则
+              </Button>
+              <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
+            </div>
+          </RuleRow>
+
+          {/* 取消政策 */}
+          <RuleRow label="取消政策">
+            <div className="border border-border/50 rounded-md overflow-x-auto">
+              <table className="w-full text-[12px] min-w-[600px]">
+                <thead className="bg-muted/40">
+                  <tr className="text-left text-muted-foreground">
+                    <th className="px-2 py-2 font-medium">限制条件</th>
+                    <th className="px-2 py-2 font-medium">取消规则</th>
+                    <th className="px-2 py-2 font-medium">优先级</th>
+                    <th className="px-2 py-2 font-medium w-24">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rules.cancelRules.map((r, i) => (
+                    <tr key={r.id} className="border-t border-border/40">
+                      <td className="px-2 py-2">
+                        <Input
+                          className="h-7 text-[12px]"
+                          value={r.condition}
+                          onChange={(e) => {
+                            const next = [...rules.cancelRules];
+                            next[i] = { ...r, condition: e.target.value };
+                            persistRules({ ...rules, cancelRules: next });
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          className="h-7 text-[12px]"
+                          value={r.rule}
+                          onChange={(e) => {
+                            const next = [...rules.cancelRules];
+                            next[i] = { ...r, rule: e.target.value };
+                            persistRules({ ...rules, cancelRules: next });
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Input
+                          type="number"
+                          className="h-7 w-16 text-[12px]"
+                          value={r.priority}
+                          onChange={(e) => {
+                            const next = [...rules.cancelRules];
+                            next[i] = { ...r, priority: Number(e.target.value) || 0 };
+                            persistRules({ ...rules, cancelRules: next });
+                          }}
+                        />
+                      </td>
+                      <td className="px-2 py-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-[11px] text-destructive hover:text-destructive"
+                          onClick={() =>
+                            persistRules({
+                              ...rules,
+                              cancelRules: rules.cancelRules.filter((x) => x.id !== r.id),
+                            })
+                          }
+                        >
+                          删除
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  {rules.cancelRules.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-2 py-6 text-center text-muted-foreground">
+                        暂无规则
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-2 flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[12px]"
+                onClick={() =>
+                  persistRules({
+                    ...rules,
+                    cancelRules: [
+                      ...rules.cancelRules,
+                      { id: `c${Date.now()}`, condition: "", rule: "不可取消", priority: 0 },
+                    ],
+                  })
+                }
+              >
+                添加规则
+              </Button>
+              <span className="text-[11px] text-muted-foreground">ⓘ 规则说明 更改规则后,需联系管理员同步后才会生效</span>
+            </div>
+          </RuleRow>
+
+          {/* 自动下单 */}
+          <RuleRow label="自动下单">
+            {rules.autoOrderRules.length === 0 ? (
+              <p className="text-[12px] text-muted-foreground">不自动下单</p>
+            ) : (
+              <ul className="text-[12px] space-y-1">
+                {rules.autoOrderRules.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between border border-border/40 rounded px-2 py-1">
+                    <span>{r.condition}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-[11px] text-destructive"
+                      onClick={() =>
+                        persistRules({
+                          ...rules,
+                          autoOrderRules: rules.autoOrderRules.filter((x) => x.id !== r.id),
+                        })
+                      }
+                    >
+                      删除
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-2 flex items-center gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-[12px]"
+                onClick={() =>
+                  persistRules({
+                    ...rules,
+                    autoOrderRules: [
+                      ...rules.autoOrderRules,
+                      { id: `a${Date.now()}`, condition: "符合条件订单自动下单", enabled: true },
+                    ],
+                  })
+                }
+              >
+                添加规则
+              </Button>
+              <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
+            </div>
+          </RuleRow>
+
+          {/* 下单手机号 */}
+          <RuleRow label="下单手机号">
+            <div className="flex items-center gap-2">
+              <Input
+                className="h-8 w-72 text-[13px]"
+                placeholder="请填写商家自己的联系方式"
+                value={rules.contactPhone}
+                onChange={(e) => persistRules({ ...rules, contactPhone: e.target.value })}
               />
-            </TabsContent>
-            <TabsContent value="markup" className="mt-4">
-              <Textarea
-                className="min-h-[160px] text-[13px]"
-                value={rules.markupRule}
-                onChange={(e) => updateRule("markupRule", e.target.value)}
-                placeholder="例如：周末加价 10%..."
-              />
-            </TabsContent>
-            <TabsContent value="cancel" className="mt-4">
-              <Textarea
-                className="min-h-[160px] text-[13px]"
-                value={rules.cancelPolicy}
-                onChange={(e) => updateRule("cancelPolicy", e.target.value)}
-                placeholder="例如：入住前 24 小时免费取消..."
-              />
-            </TabsContent>
-            <TabsContent value="contact" className="mt-4">
-              <Textarea
-                className="min-h-[160px] text-[13px]"
-                value={rules.contactInfo}
-                onChange={(e) => updateRule("contactInfo", e.target.value)}
-                placeholder="联系电话/邮箱..."
-              />
-            </TabsContent>
-            <TabsContent value="checkin" className="mt-4">
-              <Textarea
-                className="min-h-[160px] text-[13px]"
-                value={rules.checkInRule}
-                onChange={(e) => updateRule("checkInRule", e.target.value)}
-                placeholder="入住时间/离店时间/证件要求..."
-              />
-            </TabsContent>
-          </Tabs>
-          <p className="text-[11px] text-muted-foreground mt-2">规则修改将自动保存</p>
+              <span className="text-[11px] text-muted-foreground">
+                (下单给供应商时使用的联系方式,多个时用英文,隔开,系统会随机选择一个)
+              </span>
+            </div>
+          </RuleRow>
+
+          {/* 入住设置 */}
+          <RuleRow label="入住设置">
+            <div className="space-y-3">
+              <div>
+                <p className="text-[12px] font-medium text-foreground mb-1.5">场景一</p>
+                <div className="space-y-1.5 ml-2">
+                  <label className="flex items-center gap-2 text-[12px] cursor-pointer">
+                    <input
+                      type="radio"
+                      name="scene1"
+                      checked={!rules.scene1.enabled}
+                      onChange={() =>
+                        persistRules({ ...rules, scene1: { ...rules.scene1, enabled: false } })
+                      }
+                    />
+                    <span>不设置</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-[12px] cursor-pointer">
+                    <input
+                      type="radio"
+                      name="scene1"
+                      checked={rules.scene1.enabled && rules.scene1.mode === "direct"}
+                      onChange={() =>
+                        persistRules({
+                          ...rules,
+                          scene1: { ...rules.scene1, enabled: true, mode: "direct" },
+                        })
+                      }
+                    />
+                    <span>针对</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={23}
+                      className="h-7 w-16 text-[12px]"
+                      value={rules.scene1.hour}
+                      onChange={(e) =>
+                        persistRules({
+                          ...rules,
+                          scene1: { ...rules.scene1, hour: Number(e.target.value) || 0 },
+                        })
+                      }
+                    />
+                    <span>点后确认有房的当日入住订单,在订单确认后立即标记入住</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-[12px] cursor-pointer">
+                    <input
+                      type="radio"
+                      name="scene1"
+                      checked={rules.scene1.enabled && rules.scene1.mode === "ifNonCancelable"}
+                      onChange={() =>
+                        persistRules({
+                          ...rules,
+                          scene1: { ...rules.scene1, enabled: true, mode: "ifNonCancelable" },
+                        })
+                      }
+                    />
+                    <span>针对</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={23}
+                      className="h-7 w-16 text-[12px]"
+                      value={rules.scene1.hour}
+                      onChange={(e) =>
+                        persistRules({
+                          ...rules,
+                          scene1: { ...rules.scene1, hour: Number(e.target.value) || 0 },
+                        })
+                      }
+                    />
+                    <span>点后确认有房的当日入住订单,如果其采购的供应商订单当前时间不可取消,则在订单确认后立即标记入住</span>
+                  </label>
+                </div>
+              </div>
+              <div>
+                <p className="text-[12px] font-medium text-foreground mb-1.5">场景二</p>
+                <div className="space-y-1.5 ml-2">
+                  <label className="flex items-center gap-2 text-[12px] cursor-pointer">
+                    <input
+                      type="radio"
+                      name="scene2"
+                      checked={!rules.scene2.enabled}
+                      onChange={() =>
+                        persistRules({ ...rules, scene2: { ...rules.scene2, enabled: false } })
+                      }
+                    />
+                    <span>不设置</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-[12px] cursor-pointer">
+                    <input
+                      type="radio"
+                      name="scene2"
+                      checked={rules.scene2.enabled}
+                      onChange={() =>
+                        persistRules({ ...rules, scene2: { ...rules.scene2, enabled: true } })
+                      }
+                    />
+                    <span>所有订单在入住日的</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={23}
+                      className="h-7 w-16 text-[12px]"
+                      value={rules.scene2.hour}
+                      onChange={(e) =>
+                        persistRules({
+                          ...rules,
+                          scene2: { ...rules.scene2, hour: Number(e.target.value) || 0 },
+                        })
+                      }
+                    />
+                    <span>点将标记为入住,预定时间在设置的时间之后的当日住订单将在订单确认有房后立即标记成入住</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </RuleRow>
+
+          <p className="text-[11px] text-muted-foreground">规则修改将自动保存</p>
         </CardContent>
       </Card>
 
@@ -502,6 +1038,15 @@ function SecretRow({
           <Copy className="h-3.5 w-3.5" />
         </Button>
       </div>
+    </div>
+  );
+}
+
+function RuleRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[88px_1fr] gap-4 items-start">
+      <div className="text-[12.5px] font-medium text-foreground pt-2 text-right">{label}</div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

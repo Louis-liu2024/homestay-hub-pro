@@ -9,6 +9,8 @@ export interface Hotel {
   channel: Channel;
   /** 酒店发布状态 */
   published?: boolean;
+  /** 售卖状态：开房 / 关房 */
+  saleStatus?: '开房' | '关房';
   roomCount: number;
   vacancyRate7d: number;
   tags: HotelTag[];
