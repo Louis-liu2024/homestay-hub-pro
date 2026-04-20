@@ -37,26 +37,62 @@ const hotelCoverImages = [
 
 const allFacilities = ['免费WiFi', '室内泳池', '健身房', 'SPA', '中餐厅', '西餐厅', '行政酒廊', '会议室', '免费停车', '机场接送', '商务中心', '24小时前台', '洗衣服务', '儿童乐园', '宠物友好'];
 
+const roomFacilityGroups = [
+  { name: '洗浴用品', items: ['牙刷', '牙膏', '沐浴露', '洗发水', '护发素', '香皂', '浴帽'] },
+  { name: '室外景观', items: ['海景'] },
+  { name: '客房布局和家具', items: ['沙发', '衣柜/衣橱', '书桌', '阳台'] },
+  { name: '食品饮品', items: ['水果', '咖啡机', '茶包', '软饮(免费)', '瓶装水', '电热水壶', '迷你吧'] },
+  { name: '网络与通讯', items: ['客房WIFI', '电话', '国际长途电话'] },
+  { name: '卫浴设施', items: ['浴缸', '私人浴室', '私人卫生间', '吹风机(戴森)', '浴室化妆放大镜', '浴衣', '毛巾', '浴巾', '24小时热水', '拖鞋'] },
+  { name: '儿童设施服务', items: ['儿童洗漱用品', '儿童防护设施', '儿童防滑凳', '奶瓶/奶嘴消毒器', '婴儿浴盆', '儿童拖鞋', '儿童浴袍', '桌角防护', '便携式婴儿床/婴儿床'] },
+  { name: '客房设施', items: ['空调', '手动窗帘', '遮光窗帘', '床具:鸭绒被', '床具:毯子或被子'] },
+  { name: '媒体科技', items: ['液晶电视机', '有线频道'] },
+  { name: '厨房用品', items: ['冰箱'] },
+  { name: '便利设施', items: ['管家服务', '电子秤', '房内保险箱', '开夜床', '多种规格电源插座', '110V电压插座', '220V电压插座', '雨伞', '行政酒廊待遇', '欢迎礼品'] },
+];
+
 function makeRooms(hotelId: string, count: number): Room[] {
   const roomNames = ['标准大床房', '豪华双床房', '商务套房', '家庭亲子房', '景观大床房', '行政套房', '经济单人房', '蜜月圆床房'];
-  return Array.from({ length: count }, (_, i) => ({
-    id: `${hotelId}-r${i + 1}`,
-    hotelId,
-    name: roomNames[i % roomNames.length],
-    price: Math.round(200 + Math.random() * 1800),
-    area: Math.round(20 + Math.random() * 60),
-    bedType: bedTypes[i % bedTypes.length],
-    breakfast: (['含早', '不含早', '可选早'] as const)[i % 3],
-    maxGuests: Math.floor(1 + Math.random() * 4),
-    floor: `${Math.floor(2 + Math.random() * 28)}F`,
-    wifi: Math.random() > 0.1,
-    published: Math.random() > 0.5,
-    subscribedPrice: Math.random() > 0.7,
-    image: roomImages[(i + hotelId.length) % roomImages.length],
-    hasWindow: Math.random() > 0.2,
-    hasBathroom: Math.random() > 0.05,
-    hasVacancy: Math.random() > 0.25,
-  }));
+  const subNames = ['-2份早餐', '-含早', '-不含早', '-单早', '-双早'];
+  const cancelPolicies = ['30分钟内免费取消', '入住前24小时免费取消', '不可取消', '入住前48小时免费取消'];
+  const payments = ['到店付', '在线付', '担保预订'];
+  return Array.from({ length: count }, (_, i) => {
+    const area = Math.round(20 + Math.random() * 60);
+    const floor = `${Math.floor(2 + Math.random() * 28)}F`;
+    const hasWindow = Math.random() > 0.2;
+    return {
+      id: `${hotelId}-r${i + 1}`,
+      hotelId,
+      name: roomNames[i % roomNames.length],
+      price: Math.round(200 + Math.random() * 1800),
+      area,
+      bedType: bedTypes[i % bedTypes.length],
+      breakfast: (['含早', '不含早', '可选早'] as const)[i % 3],
+      maxGuests: Math.floor(1 + Math.random() * 4),
+      floor,
+      wifi: Math.random() > 0.1,
+      published: Math.random() > 0.5,
+      subscribedPrice: Math.random() > 0.7,
+      image: roomImages[(i + hotelId.length) % roomImages.length],
+      hasWindow,
+      hasBathroom: Math.random() > 0.05,
+      hasVacancy: Math.random() > 0.25,
+      roomExternalId: String(63000000 + i * 9137 + hotelId.length * 13),
+      subRoomTypeName: roomNames[i % roomNames.length] + subNames[i % subNames.length],
+      subRoomTypeId: String(136000000 + i * 4357),
+      windowType: hasWindow ? '有窗' : '无窗',
+      stock: Math.floor(50 + Math.random() * 9950),
+      minOrderQty: 1,
+      maxOrderQty: 4 + (i % 3),
+      cancelPolicyName: cancelPolicies[i % cancelPolicies.length],
+      cancelType: i % 3 === 0 ? '不可取消' : '可取消',
+      preCancelTime: i % 3 === 0 ? '-' : `入住前${24 * (1 + i % 3)}小时`,
+      paymentMethod: payments[i % payments.length],
+      createdAt: '2026-01-13 16:41:20',
+      facilityTags: [hasWindow ? '有窗' : '无窗', '禁烟', `${area}平方米 | ${floor}层`, 'Wi-Fi免费'],
+      facilityGroups: roomFacilityGroups,
+    };
+  });
 }
 
 // ---- Shops ----
