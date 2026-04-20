@@ -45,13 +45,73 @@ function loadShops(): Shop[] {
   return mockShops;
 }
 
-interface ShopRules {
-  bookingRule: string;
-  markupRule: string;
-  cancelPolicy: string;
-  contactInfo: string;
-  checkInRule: string;
+interface MarkupRule {
+  id: string;
+  supplier: string;
+  channel: string;
+  hotelTag: string;
+  priceMin: number;
+  priceMax: number;
+  otherCondition?: string;
+  markupPercent: number;
+  markupFixed: number;
+  priority: number;
 }
+
+interface BlockRule {
+  id: string;
+  supplier: string;
+  channel: string;
+  hotelTag: string;
+  reason: string;
+  priority: number;
+}
+
+interface CancelRule {
+  id: string;
+  condition: string;
+  rule: string;
+  priority: number;
+}
+
+interface AutoOrderRule {
+  id: string;
+  condition: string;
+  enabled: boolean;
+}
+
+interface CheckInScene {
+  enabled: boolean;
+  hour: number;
+  mode: "direct" | "ifNonCancelable";
+}
+
+interface ShopRules {
+  advanceBookingHours: number;
+  markupRules: MarkupRule[];
+  blockRules: BlockRule[];
+  cancelRules: CancelRule[];
+  autoOrderRules: AutoOrderRule[];
+  contactPhone: string;
+  scene1: CheckInScene;
+  scene2: { enabled: boolean; hour: number };
+}
+
+const DEFAULT_RULES: ShopRules = {
+  advanceBookingHours: 0,
+  markupRules: [
+    { id: "m1", supplier: "艺龙", channel: "飞猪", hotelTag: "扶摇专用", priceMin: 0, priceMax: 55, markupPercent: 0, markupFixed: -7, priority: 0 },
+    { id: "m2", supplier: "艺龙", channel: "飞猪", hotelTag: "扶摇专用", priceMin: 55, priceMax: 9999, markupPercent: 20, markupFixed: 0, priority: 0 },
+  ],
+  blockRules: [],
+  cancelRules: [
+    { id: "c1", condition: "艺龙 且 供应商取消类型:不可取消", rule: "不可取消", priority: 0 },
+  ],
+  autoOrderRules: [],
+  contactPhone: "",
+  scene1: { enabled: true, hour: 0, mode: "direct" },
+  scene2: { enabled: true, hour: 19 },
+};
 
 const PALETTE = [
   "from-blue-500 to-blue-600",
