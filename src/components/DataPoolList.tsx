@@ -358,6 +358,26 @@ export function DataPoolList() {
         open={!!publishHotel}
         onOpenChange={(o) => !o && setPublishHotel(null)}
       />
+
+      <AlertDialog open={!!deleteHotel} onOpenChange={(o) => !o && setDeleteHotel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>删除酒店</AlertDialogTitle>
+            <AlertDialogDescription>
+              确认删除「{deleteHotel?.name}」？该操作不可撤销，相关房型与价格信息将一并移除。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              确认删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
