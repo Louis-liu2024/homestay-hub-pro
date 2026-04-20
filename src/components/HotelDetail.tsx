@@ -465,41 +465,54 @@ function RoomDetailSheet({
 }
 
 function PriceCalendar({ room }: { room: Room }) {
-  const { days, monthLabel } = useMemo(() => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth();
+  const today = useMemo(() => new Date(), []);
+  const [cursor, setCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+
+  const { days, monthLabel, trend } = useMemo(() => {
+    const year = cursor.getFullYear();
+    const month = cursor.getMonth();
     const first = new Date(year, month, 1);
     const last = new Date(year, month + 1, 0);
     const startWeekday = first.getDay();
     const totalDays = last.getDate();
 
     const cells: Array<{ date?: number; price?: number; stock?: number; isToday?: boolean } | null> = [];
+    const trendData: Array<{ date: number; price: number }> = [];
     for (let i = 0; i < startWeekday; i++) cells.push(null);
     for (let d = 1; d <= totalDays; d++) {
-      // Pseudo-stable values based on date+room id
-      const seed = (d * 17 + room.id.length * 31) % 100;
-      const price = room.price > 0 ? room.price + (seed - 50) * 4 : 580 + seed * 3;
+      const seed = (d * 17 + room.id.length * 31 + month * 7) % 100;
+      const price = Math.max(99, room.price > 0 ? room.price + (seed - 50) * 4 : 580 + seed * 3);
       const stock = (seed % 30) + 1;
-      cells.push({
-        date: d,
-        price: Math.max(99, price),
-        stock,
-        isToday: d === today.getDate(),
-      });
+      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      cells.push({ date: d, price, stock, isToday });
+      trendData.push({ date: d, price });
     }
     return {
       days: cells,
       monthLabel: `${year}年${month + 1}月`,
+      trend: trendData,
     };
-  }, [room]);
+  }, [room, cursor, today]);
 
   const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
 
+  const goPrev = () => setCursor((c) => new Date(c.getFullYear(), c.getMonth() - 1, 1));
+  const goNext = () => setCursor((c) => new Date(c.getFullYear(), c.getMonth() + 1, 1));
+  const goToday = () => setCursor(new Date(today.getFullYear(), today.getMonth(), 1));
+
   return (
-    <div>
+    <div className="text-left">
       <div className="flex items-center justify-between mb-3">
-        <div className="text-[13px] font-semibold text-foreground">{monthLabel}</div>
+        <div className="flex items-center gap-1">
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={goPrev} aria-label="上一月">
+            <ArrowLeft className="h-3.5 w-3.5" />
+          </Button>
+          <div className="text-[13px] font-semibold text-foreground min-w-[90px] text-center">{monthLabel}</div>
+          <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={goNext} aria-label="下一月">
+            <ArrowLeft className="h-3.5 w-3.5 rotate-180" />
+          </Button>
+          <Button size="sm" variant="outline" className="h-7 ml-2 text-[12px]" onClick={goToday}>今天</Button>
+        </div>
         <div className="text-[11px] text-muted-foreground">价格 / 库存</div>
       </div>
       <div className="grid grid-cols-7 gap-1 mb-1">
@@ -533,7 +546,76 @@ function PriceCalendar({ room }: { room: Room }) {
           </div>
         ))}
       </div>
+
+      <div className="mt-5">
+        <div className="text-[12px] font-semibold text-foreground mb-2">价格趋势</div>
+        <div className="rounded-md border border-border/40 bg-card p-3">
+          <PriceTrendChart data={trend} />
+        </div>
+      </div>
     </div>
+  );
+}
+
+function PriceTrendChart({ data }: { data: Array<{ date: number; price: number }> }) {
+  const width = 720;
+  const height = 160;
+  const padL = 36;
+  const padR = 12;
+  const padT = 10;
+  const padB = 22;
+  const innerW = width - padL - padR;
+  const innerH = height - padT - padB;
+
+  if (data.length === 0) return null;
+  const prices = data.map((d) => d.price);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+
+  const points = data.map((d, i) => {
+    const x = padL + (i / Math.max(1, data.length - 1)) * innerW;
+    const y = padT + innerH - ((d.price - min) / range) * innerH;
+    return { x, y, ...d };
+  });
+
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const areaPath = `${linePath} L${points[points.length - 1].x.toFixed(1)},${(padT + innerH).toFixed(1)} L${points[0].x.toFixed(1)},${(padT + innerH).toFixed(1)} Z`;
+
+  const yTicks = 4;
+  const ticks = Array.from({ length: yTicks + 1 }).map((_, i) => {
+    const v = min + (range * i) / yTicks;
+    const y = padT + innerH - (i / yTicks) * innerH;
+    return { v: Math.round(v), y };
+  });
+
+  const xTickEvery = Math.ceil(data.length / 8);
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-[160px]" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="priceArea" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {ticks.map((t, i) => (
+        <g key={i}>
+          <line x1={padL} x2={width - padR} y1={t.y} y2={t.y} stroke="hsl(var(--border))" strokeWidth="1" strokeDasharray="2 3" opacity="0.5" />
+          <text x={padL - 6} y={t.y + 3} fontSize="10" fill="hsl(var(--muted-foreground))" textAnchor="end">¥{t.v}</text>
+        </g>
+      ))}
+      <path d={areaPath} fill="url(#priceArea)" />
+      <path d={linePath} fill="none" stroke="hsl(var(--primary))" strokeWidth="1.5" />
+      {points.map((p, i) => (
+        i % xTickEvery === 0 ? (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r="2" fill="hsl(var(--primary))" />
+            <text x={p.x} y={height - 6} fontSize="10" fill="hsl(var(--muted-foreground))" textAnchor="middle">{p.date}</text>
+          </g>
+        ) : null
+      ))}
+    </svg>
   );
 }
 
