@@ -253,7 +253,7 @@ export function ShopDetail() {
   };
 
   return (
-    <div className="p-5 md:p-7 space-y-4 text-[13px] max-w-5xl">
+    <div className="p-5 md:p-7 space-y-4 text-[13px] max-w-6xl">
       <Button
         variant="ghost"
         size="sm"
