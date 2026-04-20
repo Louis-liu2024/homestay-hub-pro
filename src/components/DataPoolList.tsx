@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@tanstack/react-router";
-import { Search, Upload, Tag, Download, TrendingUp, Pencil, BedDouble, Trash2 } from "lucide-react";
+import { Search, Upload, Download, TrendingUp, Pencil, BedDouble, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/DataTablePagination";
