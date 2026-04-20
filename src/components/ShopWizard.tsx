@@ -99,10 +99,6 @@ export function ShopWizard() {
     setStep((s) => Math.max(1, s - 1));
   };
 
-  const skipApi = () => {
-    setStep(4);
-  };
-
   const testConnection = async () => {
     if (!feizhu?.appKey || !feizhu?.appSecret) {
       toast.error("请先填写 AppKey 与 AppSecret");
@@ -117,6 +113,19 @@ export function ShopWizard() {
 
   const reconfigureApi = () => {
     updatePlatform("飞猪", { tested: false });
+  };
+
+  // Step3 下一步前置校验：必须填写并连接测试通过
+  const goNextFromStep3 = () => {
+    if (!feizhu?.appKey?.trim() || !feizhu?.appSecret?.trim()) {
+      toast.error("请填写 AppKey 与 AppSecret");
+      return;
+    }
+    if (!feizhu.tested) {
+      toast.error("请先点击「连接测试」并通过后再继续");
+      return;
+    }
+    setStep(4);
   };
 
   const handleCreate = () => {
