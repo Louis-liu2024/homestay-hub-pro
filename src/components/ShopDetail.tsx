@@ -444,7 +444,9 @@ export function ShopDetail() {
               </span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="markup" className="mt-4">
           {/* 加价规则 */}
           <RuleRow label="加价规则">
             <div className="border border-border/50 rounded-md overflow-x-auto">
@@ -629,7 +631,9 @@ export function ShopDetail() {
               <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="block" className="mt-4">
           {/* 屏蔽规则 */}
           <RuleRow label="屏蔽规则">
             {rules.blockRules.length === 0 ? (
@@ -676,7 +680,9 @@ export function ShopDetail() {
               <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="cancel" className="mt-4">
           {/* 取消政策 */}
           <RuleRow label="取消政策">
             <div className="border border-border/50 rounded-md overflow-x-auto">
@@ -773,7 +779,9 @@ export function ShopDetail() {
               <span className="text-[11px] text-muted-foreground">ⓘ 规则说明 更改规则后,需联系管理员同步后才会生效</span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="auto" className="mt-4">
           {/* 自动下单 */}
           <RuleRow label="自动下单">
             {rules.autoOrderRules.length === 0 ? (
@@ -820,7 +828,9 @@ export function ShopDetail() {
               <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="contact" className="mt-4">
           {/* 下单手机号 */}
           <RuleRow label="下单手机号">
             <div className="flex items-center gap-2">
@@ -835,7 +845,9 @@ export function ShopDetail() {
               </span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="checkin" className="mt-4">
           {/* 入住设置 */}
           <RuleRow label="入住设置">
             <div className="space-y-3">
@@ -954,6 +966,8 @@ export function ShopDetail() {
               </div>
             </div>
           </RuleRow>
+            </TabsContent>
+          </Tabs>
 
           <p className="text-[11px] text-muted-foreground">规则修改将自动保存</p>
         </CardContent>
