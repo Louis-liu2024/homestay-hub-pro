@@ -204,11 +204,12 @@ export function DataPoolList() {
 
           {/* Scrollable middle */}
           <div className="flex-1 overflow-x-auto min-w-0">
-            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 min-w-[800px]">
+            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 min-w-[900px]">
               <HeaderCell w="w-16">评分</HeaderCell>
               <HeaderCell w="w-20">渠道</HeaderCell>
               <HeaderCell w="w-20">房间量</HeaderCell>
               <HeaderCell w="w-24">7天空房率</HeaderCell>
+              <HeaderCell w="w-24">发布状态</HeaderCell>
               <HeaderCell w="w-40">标签</HeaderCell>
               <HeaderCell w="w-20">城市</HeaderCell>
               <HeaderCell w="w-24">品牌</HeaderCell>
