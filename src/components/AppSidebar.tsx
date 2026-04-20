@@ -102,13 +102,14 @@ export function AppSidebar() {
                         />
                       </SidebarMenuButton>
                       {isOpen && (
-                        <div className="mt-0.5 ml-4 pl-3 border-l border-sidebar-border/60 space-y-0.5 py-0.5">
+                        <div className="mt-0.5 ml-7 space-y-0.5 py-0.5">
                           {item.children!.map((c) => {
                             const childActive =
                               c.url === "/shops"
                                 ? location.pathname === "/shops" ||
                                   /^\/shops\/(new|[a-zA-Z0-9_-]+)$/.test(location.pathname)
-                                : location.pathname.startsWith(c.url);
+                                : location.pathname === c.url ||
+                                  location.pathname.startsWith(c.url + "/");
                             return (
                               <Link
                                 key={c.title}
