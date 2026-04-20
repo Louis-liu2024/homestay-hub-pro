@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   ArrowLeft, Upload, Bell, MapPin, Phone, Star, Tag,
   Wifi, Bath, Sun, Coffee, Users, Maximize, Building2, Calendar, Clock,
-  LayoutGrid, List as ListIcon,
+  LayoutGrid, List as ListIcon, Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PriceQueryDialog } from "@/components/PriceQueryDialog";
 import { PublishDialog } from "@/components/PublishDialog";
-import type { Room } from "@/lib/types";
+import type { Hotel, Room } from "@/lib/types";
 
 type RoomView = "card" | "list";
 
@@ -25,6 +26,7 @@ export function HotelDetail({ hotelId }: { hotelId: string }) {
   const [roomView, setRoomView] = useState<RoomView>("card");
   const [priceQueryRoomIds, setPriceQueryRoomIds] = useState<string[] | undefined>(undefined);
   const [publishRoomIds, setPublishRoomIds] = useState<string[] | undefined>(undefined);
+  const [moreInfoOpen, setMoreInfoOpen] = useState(false);
 
   if (!hotel) {
     return (
@@ -117,15 +119,22 @@ export function HotelDetail({ hotelId }: { hotelId: string }) {
 
         <div className="space-y-3">
           <Card className="border-border/60 bg-card">
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-[13px] font-semibold">酒店信息</CardTitle>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-[12px] text-primary hover:text-primary"
+                onClick={() => setMoreInfoOpen(true)}
+              >
+                <Info className="h-3.5 w-3.5 mr-1" />更多信息
+              </Button>
             </CardHeader>
             <CardContent className="space-y-2 text-[13px]">
               <InfoLine icon={<Building2 className="h-3.5 w-3.5" />} label="品牌" value={hotel.brand} />
+              <InfoLine icon={<Star className="h-3.5 w-3.5" />} label="评分" value={String(hotel.rating)} />
               <InfoLine icon={<Calendar className="h-3.5 w-3.5" />} label="开业年份" value={String(hotel.openYear ?? "—")} />
-              <InfoLine icon={<Calendar className="h-3.5 w-3.5" />} label="装修年份" value={String(hotel.decorationYear ?? "—")} />
-              <InfoLine icon={<Clock className="h-3.5 w-3.5" />} label="入住时间" value={hotel.checkInTime ?? "—"} />
-              <InfoLine icon={<Clock className="h-3.5 w-3.5" />} label="离店时间" value={hotel.checkOutTime ?? "—"} />
+              <InfoLine icon={<Clock className="h-3.5 w-3.5" />} label="入住 / 离店" value={`${hotel.checkInTime ?? "—"} / ${hotel.checkOutTime ?? "—"}`} />
               <InfoLine icon={<Users className="h-3.5 w-3.5" />} label="房间数" value={String(hotel.roomCount)} />
               <InfoLine
                 icon={<Tag className="h-3.5 w-3.5" />}
