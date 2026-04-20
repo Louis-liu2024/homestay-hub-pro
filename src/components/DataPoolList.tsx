@@ -28,6 +28,9 @@ import type { Channel, Hotel } from "@/lib/types";
 const CHANNELS: (Channel | "全部")[] = ["全部", "携程", "美团", "Booking", "飞猪", "去哪儿", "Agoda", "途家", "小红书"];
 
 export function DataPoolList() {
+  const [hotels, setHotels] = useState<Hotel[]>(() =>
+    mockHotels.map((h) => ({ ...h, published: h.published ?? Math.random() > 0.4 })),
+  );
   const [search, setSearch] = useState("");
   const [activeChannel, setActiveChannel] = useState<Channel | "全部">("全部");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -35,12 +38,13 @@ export function DataPoolList() {
   const [pageSize, setPageSize] = useState(20);
   const [priceQueryHotel, setPriceQueryHotel] = useState<Hotel | null>(null);
   const [publishHotel, setPublishHotel] = useState<Hotel | null>(null);
+  const [deleteHotel, setDeleteHotel] = useState<Hotel | null>(null);
 
   const channelCounts = useMemo(() => {
-    const counts: Record<string, number> = { 全部: mockHotels.length };
-    for (const h of mockHotels) counts[h.channel] = (counts[h.channel] ?? 0) + 1;
+    const counts: Record<string, number> = { 全部: hotels.length };
+    for (const h of hotels) counts[h.channel] = (counts[h.channel] ?? 0) + 1;
     return counts;
-  }, []);
+  }, [hotels]);
 
   const filtered = useMemo(() => {
     let list = mockHotels;
