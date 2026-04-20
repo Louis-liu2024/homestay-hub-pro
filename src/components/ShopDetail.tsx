@@ -27,6 +27,7 @@ import {
   Check,
   KeyRound,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 const SHOP_KEY = "hotelos.shops.list";
