@@ -152,6 +152,8 @@ export interface Shop {
   publishTime?: string;
   apiConfigs: ShopApiConfig[];
   createdAt: string;
+  /** 店铺发布状态 */
+  published?: boolean;
 }
 
 export interface ShopApiConfig {

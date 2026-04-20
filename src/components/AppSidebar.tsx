@@ -105,7 +105,7 @@ export function AppSidebar() {
                         />
                       </SidebarMenuButton>
                       {isOpen && (
-                        <SidebarMenuSub className="mr-0 pr-0 border-sidebar-border/60">
+                        <div className="mt-0.5 ml-4 pl-3 border-l border-sidebar-border/60 space-y-0.5 py-0.5">
                           {item.children!.map((c) => {
                             const childActive =
                               c.url === "/shops"
@@ -113,25 +113,28 @@ export function AppSidebar() {
                                   /^\/shops\/(new|[a-zA-Z0-9_-]+)$/.test(location.pathname)
                                 : location.pathname.startsWith(c.url);
                             return (
-                              <SidebarMenuSubItem key={c.title}>
-                                <SidebarMenuSubButton
-                                  asChild
-                                  isActive={childActive}
-                                  className={`h-8 text-[12.5px] ${
-                                    childActive
-                                      ? "bg-primary/10 text-primary font-semibold"
-                                      : "text-sidebar-foreground/80"
+                              <Link
+                                key={c.title}
+                                to={c.url}
+                                className={`flex items-center gap-2 h-8 px-2.5 rounded-md text-[12.5px] transition-colors ${
+                                  childActive
+                                    ? "bg-primary/10 text-primary font-semibold"
+                                    : "text-sidebar-foreground/75 hover:text-foreground hover:bg-sidebar-accent"
+                                }`}
+                              >
+                                <c.icon
+                                  className={`h-3.5 w-3.5 shrink-0 ${
+                                    childActive ? "text-primary" : ""
                                   }`}
-                                >
-                                  <Link to={c.url} className="flex items-center gap-2">
-                                    <c.icon className="h-3.5 w-3.5 shrink-0" />
-                                    <span>{c.title}</span>
-                                  </Link>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
+                                />
+                                <span>{c.title}</span>
+                                {childActive && (
+                                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                                )}
+                              </Link>
                             );
                           })}
-                        </SidebarMenuSub>
+                        </div>
                       )}
                     </SidebarMenuItem>
                   );
