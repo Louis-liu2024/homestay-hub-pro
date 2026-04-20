@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { mockShops } from "@/lib/mock-data";
 import type { Shop, Channel } from "@/lib/types";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Search, Store, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 
 const allChannels: Channel[] = ["携程", "美团", "Booking", "飞猪", "去哪儿", "Agoda", "途家", "小红书"];
 const regions = ["华东", "华南", "华北", "华中", "西南", "西北", "东北"];
@@ -48,10 +50,20 @@ function hashIdx(str: string, mod: number) {
 }
 
 export function ShopList() {
-  const [shops] = useState<Shop[]>(() => loadShops());
+  const [shops, setShops] = useState<Shop[]>(() =>
+    loadShops().map((s) => ({ ...s, published: s.published ?? true })),
+  );
   const [search, setSearch] = useState("");
   const [regionFilter, setRegionFilter] = useState<string>("all");
   const [channelFilter, setChannelFilter] = useState<string>("all");
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(shops));
+    } catch {
+      /* ignore */
+    }
+  }, [shops]);
 
   const filtered = useMemo(() => {
     return shops.filter((s) => {
@@ -66,6 +78,11 @@ export function ShopList() {
       return matchKw && matchRegion && matchChannel;
     });
   }, [shops, search, regionFilter, channelFilter]);
+
+  const togglePublished = (id: string, next: boolean) => {
+    setShops((prev) => prev.map((s) => (s.id === id ? { ...s, published: next } : s)));
+    toast.success(next ? "店铺已发布" : "店铺已下线");
+  };
 
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
@@ -131,15 +148,18 @@ export function ShopList() {
         {filtered.map((shop) => {
           const initials = shop.name.slice(0, 2);
           const grad = PALETTE[hashIdx(shop.id, PALETTE.length)];
+          const published = shop.published ?? true;
           return (
-            <Link
+            <Card
               key={shop.id}
-              to="/shops/$shopId"
-              params={{ shopId: shop.id }}
-              className="group"
+              className="border-border/60 bg-card transition-all hover:border-primary/40 hover:shadow-md h-full"
             >
-              <Card className="border-border/60 bg-card transition-all hover:border-primary/40 hover:shadow-md cursor-pointer h-full">
-                <CardContent className="p-4 space-y-3">
+              <CardContent className="p-4 space-y-3">
+                <Link
+                  to="/shops/$shopId"
+                  params={{ shopId: shop.id }}
+                  className="group block"
+                >
                   <div className="flex items-start gap-3">
                     <div
                       className={`h-12 w-12 rounded-lg bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-[15px] shadow-sm shrink-0`}
@@ -156,37 +176,57 @@ export function ShopList() {
                     </div>
                     <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors shrink-0" />
                   </div>
-                  <div className="flex flex-wrap gap-1">
-                    {shop.channels.slice(0, 4).map((ch) => (
-                      <Badge
-                        key={ch}
-                        variant="secondary"
-                        className="text-[10px] h-5 bg-primary/10 text-primary border-0"
-                      >
-                        {ch}
-                      </Badge>
-                    ))}
-                    {shop.channels.length > 4 && (
-                      <Badge variant="outline" className="text-[10px] h-5">
-                        +{shop.channels.length - 4}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span>API 配置</span>
-                    <span className="font-semibold text-foreground">
-                      {shop.apiConfigs.length}
+                </Link>
+
+                <div className="flex flex-wrap gap-1">
+                  {shop.channels.slice(0, 4).map((ch) => (
+                    <Badge
+                      key={ch}
+                      variant="secondary"
+                      className="text-[10px] h-5 bg-primary/10 text-primary border-0"
+                    >
+                      {ch}
+                    </Badge>
+                  ))}
+                  {shop.channels.length > 4 && (
+                    <Badge variant="outline" className="text-[10px] h-5">
+                      +{shop.channels.length - 4}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                  <span className="text-[11px] text-muted-foreground">API 配置</span>
+                  <span className="font-semibold text-foreground text-[12px]">
+                    {shop.apiConfigs.length}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between rounded-md bg-muted/40 px-2.5 py-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        published ? "bg-success" : "bg-muted-foreground/40"
+                      }`}
+                    />
+                    <span className="text-[12px] text-foreground">
+                      {published ? "已发布" : "未发布"}
                     </span>
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
+                  <Switch
+                    checked={published}
+                    onCheckedChange={(v) => togglePublished(shop.id, v)}
+                    aria-label="切换店铺发布状态"
+                  />
+                </div>
+              </CardContent>
+            </Card>
           );
         })}
 
         {/* 新建占位卡片 */}
         <Link to="/shops/new" className="group">
-          <Card className="border-dashed border-border/60 bg-card/50 transition-all hover:border-primary hover:bg-primary/5 cursor-pointer h-full min-h-[150px]">
+          <Card className="border-dashed border-border/60 bg-card/50 transition-all hover:border-primary hover:bg-primary/5 cursor-pointer h-full min-h-[220px]">
             <CardContent className="p-4 h-full flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary">
               <div className="h-10 w-10 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center mb-2 transition-colors">
                 <Plus className="h-5 w-5" />

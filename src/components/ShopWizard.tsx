@@ -99,10 +99,6 @@ export function ShopWizard() {
     setStep((s) => Math.max(1, s - 1));
   };
 
-  const skipApi = () => {
-    setStep(4);
-  };
-
   const testConnection = async () => {
     if (!feizhu?.appKey || !feizhu?.appSecret) {
       toast.error("请先填写 AppKey 与 AppSecret");
@@ -117,6 +113,19 @@ export function ShopWizard() {
 
   const reconfigureApi = () => {
     updatePlatform("飞猪", { tested: false });
+  };
+
+  // Step3 下一步前置校验：必须填写并连接测试通过
+  const goNextFromStep3 = () => {
+    if (!feizhu?.appKey?.trim() || !feizhu?.appSecret?.trim()) {
+      toast.error("请填写 AppKey 与 AppSecret");
+      return;
+    }
+    if (!feizhu.tested) {
+      toast.error("请先点击「连接测试」并通过后再继续");
+      return;
+    }
+    setStep(4);
   };
 
   const handleCreate = () => {
@@ -372,30 +381,20 @@ export function ShopWizard() {
                         更换配置
                       </Button>
                     ) : (
-                      <>
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          onClick={skipApi}
-                          disabled={testing}
-                        >
-                          跳过，以后再配
-                        </Button>
-                        <Button
-                          className="flex-1"
-                          onClick={testConnection}
-                          disabled={testing}
-                        >
-                          {testing ? (
-                            <>
-                              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                              测试中...
-                            </>
-                          ) : (
-                            "连接测试"
-                          )}
-                        </Button>
-                      </>
+                      <Button
+                        className="flex-1"
+                        onClick={testConnection}
+                        disabled={testing}
+                      >
+                        {testing ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            测试中...
+                          </>
+                        ) : (
+                          "连接测试"
+                        )}
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -453,26 +452,22 @@ export function ShopWizard() {
 
           {/* Footer 按钮 */}
           <div className="flex items-center justify-between pt-3 border-t border-border/60">
-            <Button
-              variant="ghost"
-              onClick={prev}
-              disabled={step === 1}
-              className="gap-1"
-            >
-              <ChevronLeft className="h-4 w-4" /> 上一步
-            </Button>
-            {step < 4 ? (
-              step === 3 ? null : (
-                <Button onClick={next} className="gap-1">
-                  下一步 <ChevronRight className="h-4 w-4" />
-                </Button>
-              )
+            {step > 1 ? (
+              <Button variant="ghost" onClick={prev} className="gap-1">
+                <ChevronLeft className="h-4 w-4" /> 上一步
+              </Button>
             ) : (
+              <span />
+            )}
+            {step === 4 ? (
               <Button onClick={handleCreate} className="gap-1">
                 <Check className="h-4 w-4" /> 确认创建
               </Button>
-            )}
-            {step === 3 && (
+            ) : step === 3 ? (
+              <Button onClick={goNextFromStep3} className="gap-1">
+                下一步 <ChevronRight className="h-4 w-4" />
+              </Button>
+            ) : (
               <Button onClick={next} className="gap-1">
                 下一步 <ChevronRight className="h-4 w-4" />
               </Button>
