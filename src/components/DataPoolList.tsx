@@ -47,7 +47,7 @@ export function DataPoolList() {
   }, [hotels]);
 
   const filtered = useMemo(() => {
-    let list = mockHotels;
+    let list = hotels;
     if (activeChannel !== "全部") list = list.filter((h) => h.channel === activeChannel);
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -59,7 +59,7 @@ export function DataPoolList() {
       );
     }
     return list;
-  }, [search, activeChannel]);
+  }, [hotels, search, activeChannel]);
 
   const paged = useMemo(
     () => filtered.slice((page - 1) * pageSize, page * pageSize),
@@ -84,8 +84,23 @@ export function DataPoolList() {
   };
 
   const handleBatchPublish = () => {
+    setHotels((prev) =>
+      prev.map((h) => (selected.has(h.id) ? { ...h, published: true } : h)),
+    );
     toast.success(`已发布 ${selected.size} 个酒店`);
     setSelected(new Set());
+  };
+
+  const togglePublished = (id: string, next: boolean) => {
+    setHotels((prev) => prev.map((h) => (h.id === id ? { ...h, published: next } : h)));
+    toast.success(next ? "酒店已发布" : "酒店已下线");
+  };
+
+  const handleDelete = () => {
+    if (!deleteHotel) return;
+    setHotels((prev) => prev.filter((h) => h.id !== deleteHotel.id));
+    toast.success(`已删除「${deleteHotel.name}」`);
+    setDeleteHotel(null);
   };
 
   const handleExport = () => {
