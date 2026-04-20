@@ -27,6 +27,7 @@ import {
   Check,
   KeyRound,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 const SHOP_KEY = "hotelos.shops.list";
@@ -412,7 +413,19 @@ export function ShopDetail() {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold">店铺规则配置</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-5">
+        <CardContent className="space-y-4">
+          <Tabs defaultValue="advance" className="w-full">
+            <TabsList className="h-9 flex flex-wrap justify-start gap-1 bg-muted/50">
+              <TabsTrigger value="advance" className="text-[12px]">提前预定</TabsTrigger>
+              <TabsTrigger value="markup" className="text-[12px]">加价规则</TabsTrigger>
+              <TabsTrigger value="block" className="text-[12px]">屏蔽规则</TabsTrigger>
+              <TabsTrigger value="cancel" className="text-[12px]">取消政策</TabsTrigger>
+              <TabsTrigger value="auto" className="text-[12px]">自动下单</TabsTrigger>
+              <TabsTrigger value="contact" className="text-[12px]">下单手机号</TabsTrigger>
+              <TabsTrigger value="checkin" className="text-[12px]">入住设置</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="advance" className="mt-4">
           {/* 提前预定 */}
           <RuleRow label="提前预定">
             <div className="flex items-center gap-2">
@@ -431,7 +444,9 @@ export function ShopDetail() {
               </span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="markup" className="mt-4">
           {/* 加价规则 */}
           <RuleRow label="加价规则">
             <div className="border border-border/50 rounded-md overflow-x-auto">
@@ -616,7 +631,9 @@ export function ShopDetail() {
               <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="block" className="mt-4">
           {/* 屏蔽规则 */}
           <RuleRow label="屏蔽规则">
             {rules.blockRules.length === 0 ? (
@@ -663,7 +680,9 @@ export function ShopDetail() {
               <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="cancel" className="mt-4">
           {/* 取消政策 */}
           <RuleRow label="取消政策">
             <div className="border border-border/50 rounded-md overflow-x-auto">
@@ -760,7 +779,9 @@ export function ShopDetail() {
               <span className="text-[11px] text-muted-foreground">ⓘ 规则说明 更改规则后,需联系管理员同步后才会生效</span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="auto" className="mt-4">
           {/* 自动下单 */}
           <RuleRow label="自动下单">
             {rules.autoOrderRules.length === 0 ? (
@@ -807,7 +828,9 @@ export function ShopDetail() {
               <span className="text-[11px] text-primary cursor-help">ⓘ 规则说明</span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="contact" className="mt-4">
           {/* 下单手机号 */}
           <RuleRow label="下单手机号">
             <div className="flex items-center gap-2">
@@ -822,7 +845,9 @@ export function ShopDetail() {
               </span>
             </div>
           </RuleRow>
+            </TabsContent>
 
+            <TabsContent value="checkin" className="mt-4">
           {/* 入住设置 */}
           <RuleRow label="入住设置">
             <div className="space-y-3">
@@ -941,6 +966,8 @@ export function ShopDetail() {
               </div>
             </div>
           </RuleRow>
+            </TabsContent>
+          </Tabs>
 
           <p className="text-[11px] text-muted-foreground">规则修改将自动保存</p>
         </CardContent>
