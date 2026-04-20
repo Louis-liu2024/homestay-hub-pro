@@ -7,6 +7,8 @@ export interface Hotel {
   name: string;
   rating: number;
   channel: Channel;
+  /** 酒店发布状态 */
+  published?: boolean;
   roomCount: number;
   vacancyRate7d: number;
   tags: HotelTag[];
