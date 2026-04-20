@@ -413,7 +413,19 @@ export function ShopDetail() {
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold">店铺规则配置</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-5">
+        <CardContent className="space-y-4">
+          <Tabs defaultValue="advance" className="w-full">
+            <TabsList className="h-9 flex flex-wrap justify-start gap-1 bg-muted/50">
+              <TabsTrigger value="advance" className="text-[12px]">提前预定</TabsTrigger>
+              <TabsTrigger value="markup" className="text-[12px]">加价规则</TabsTrigger>
+              <TabsTrigger value="block" className="text-[12px]">屏蔽规则</TabsTrigger>
+              <TabsTrigger value="cancel" className="text-[12px]">取消政策</TabsTrigger>
+              <TabsTrigger value="auto" className="text-[12px]">自动下单</TabsTrigger>
+              <TabsTrigger value="contact" className="text-[12px]">下单手机号</TabsTrigger>
+              <TabsTrigger value="checkin" className="text-[12px]">入住设置</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="advance" className="mt-4">
           {/* 提前预定 */}
           <RuleRow label="提前预定">
             <div className="flex items-center gap-2">
