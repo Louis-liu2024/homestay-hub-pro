@@ -148,6 +148,13 @@ export function HotelDetail({ hotelId }: { hotelId: string }) {
                 />
               </div>
 
+              {hotel.description && (
+                <div className="pt-3 border-t border-border/40">
+                  <div className="text-[12px] text-muted-foreground mb-1.5">酒店简介</div>
+                  <p className="text-[12.5px] text-foreground leading-relaxed">{hotel.description}</p>
+                </div>
+              )}
+
               {hotel.facilities && hotel.facilities.length > 0 && (
                 <div className="pt-3 border-t border-border/40">
                   <div className="text-[12px] text-muted-foreground mb-2">基础设施</div>
@@ -168,17 +175,6 @@ export function HotelDetail({ hotelId }: { hotelId: string }) {
           </Card>
         </div>
       </div>
-
-      {hotel.description && (
-        <Card className="border-border/60 bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-[13px] font-semibold">酒店简介</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-[13px] text-muted-foreground leading-relaxed">{hotel.description}</p>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Rooms with view toggle */}
       <Card className="border-border/60 bg-card">
