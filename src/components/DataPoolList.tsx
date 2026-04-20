@@ -219,7 +219,7 @@ export function DataPoolList() {
             {paged.map((hotel, idx) => (
               <div
                 key={hotel.id}
-                className={`flex items-center h-12 border-b border-border/30 min-w-[800px] hover:bg-accent/40 transition-colors ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
+                className={`flex items-center h-12 border-b border-border/30 min-w-[900px] hover:bg-accent/40 transition-colors ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
               >
                 <DataCell w="w-16">
                   <span className="text-[13px] font-semibold text-warning">{hotel.rating}</span>
@@ -232,6 +232,22 @@ export function DataPoolList() {
                   <span className={`text-[13px] font-mono font-medium ${hotel.vacancyRate7d > 0.5 ? "text-destructive" : "text-success"}`}>
                     {(hotel.vacancyRate7d * 100).toFixed(0)}%
                   </span>
+                </DataCell>
+                <DataCell w="w-24">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={!!hotel.published}
+                      onCheckedChange={(v) => togglePublished(hotel.id, v)}
+                      aria-label="切换酒店发布状态"
+                    />
+                    <span
+                      className={`text-[12px] ${
+                        hotel.published ? "text-success" : "text-muted-foreground"
+                      }`}
+                    >
+                      {hotel.published ? "已发布" : "未发布"}
+                    </span>
+                  </div>
                 </DataCell>
                 <DataCell w="w-40">
                   <div className="flex gap-1 flex-wrap">
@@ -258,25 +274,51 @@ export function DataPoolList() {
             {paged.map((hotel, idx) => (
               <div
                 key={hotel.id}
-                className={`flex items-center h-12 border-b border-border/30 px-2 gap-1 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
+                className={`flex items-center h-12 border-b border-border/30 px-2 gap-0.5 ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
               >
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
-                  onClick={() => setPriceQueryHotel(hotel)}
+                  className="h-7 px-1.5 text-[12px] text-muted-foreground hover:text-primary"
+                  onClick={() => toast.info(`「${hotel.name}」加价规则待配置`)}
+                  title="加价"
                 >
-                  <Tag className="h-3.5 w-3.5" />
-                  <span className="ml-1">查价</span>
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span className="ml-1">加价</span>
+                </Button>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-1.5 text-[12px] text-muted-foreground hover:text-primary"
+                  title="编辑"
+                >
+                  <Link to="/data-pool/$hotelId" params={{ hotelId: hotel.id }}>
+                    <Pencil className="h-3.5 w-3.5" />
+                    <span className="ml-1">编辑</span>
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-1.5 text-[12px] text-muted-foreground hover:text-primary"
+                  title="房型"
+                >
+                  <Link to="/data-pool/$hotelId" params={{ hotelId: hotel.id }}>
+                    <BedDouble className="h-3.5 w-3.5" />
+                    <span className="ml-1">房型</span>
+                  </Link>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
-                  onClick={() => setPublishHotel(hotel)}
+                  className="h-7 px-1.5 text-[12px] text-muted-foreground hover:text-destructive"
+                  onClick={() => setDeleteHotel(hotel)}
+                  title="删除"
                 >
-                  <Upload className="h-3.5 w-3.5" />
-                  <span className="ml-1">发布</span>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span className="ml-1">删除</span>
                 </Button>
               </div>
             ))}
