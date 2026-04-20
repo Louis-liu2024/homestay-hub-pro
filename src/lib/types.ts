@@ -72,6 +72,26 @@ export interface Room {
   hasWindow?: boolean;
   hasBathroom?: boolean;
   hasVacancy?: boolean;
+  // Extended room detail fields (room-detail panel)
+  roomExternalId?: string;        // 房型ID（外部）
+  subRoomTypeName?: string;       // 子房型名称
+  subRoomTypeId?: string;         // 子房型ID
+  windowType?: string;            // 窗户类型
+  stock?: number;                 // 库存
+  minOrderQty?: number;           // 最小订购量
+  maxOrderQty?: number;           // 最大订购量
+  cancelPolicyName?: string;      // 取消政策
+  cancelType?: string;            // 取消类型
+  preCancelTime?: string;         // 提前取消时间
+  paymentMethod?: string;         // 支付方式
+  createdAt?: string;             // 创建时间
+  facilityTags?: string[];        // 简易设施标签
+  facilityGroups?: RoomFacilityGroup[]; // 详细设施信息
+}
+
+export interface RoomFacilityGroup {
+  name: string;
+  items: string[];
 }
 
 // Price query (查价) result row
