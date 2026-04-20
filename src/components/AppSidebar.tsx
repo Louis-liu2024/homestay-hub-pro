@@ -1,5 +1,6 @@
-import { Database, Calculator, ClipboardList, Hotel, BarChart3, Store, KeyRound } from "lucide-react";
+import { Database, Calculator, ClipboardList, Hotel, BarChart3, Store, KeyRound, ChevronDown, List } from "lucide-react";
 import { Link, useLocation } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,23 +10,43 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const items = [
+type MenuItem = {
+  title: string;
+  url: string;
+  icon: typeof BarChart3;
+  children?: { title: string; url: string; icon: typeof List }[];
+};
+
+const items: MenuItem[] = [
   { title: "数据大盘", url: "/dashboard", icon: BarChart3 },
   { title: "数据池", url: "/data-pool", icon: Database },
   { title: "价格计算器", url: "/price-calculator", icon: Calculator },
   { title: "订单管理", url: "/orders", icon: ClipboardList },
   { title: "OTA账号", url: "/ota-accounts", icon: KeyRound },
-  { title: "店铺管理", url: "/shops", icon: Store },
+  {
+    title: "店铺管理",
+    url: "/shops",
+    icon: Store,
+    children: [
+      { title: "店铺列表", url: "/shops", icon: List },
+      { title: "酒店列表", url: "/shops/hotels", icon: Hotel },
+    ],
+  },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const isShopsActive = location.pathname.startsWith("/shops");
+  const [openShops, setOpenShops] = useState(isShopsActive);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -56,7 +77,66 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className={`space-y-0.5 ${collapsed ? "px-1.5" : "px-2"}`}>
               {items.map((item) => {
-                const isActive = location.pathname.startsWith(item.url);
+                const isActive =
+                  item.url === "/shops"
+                    ? location.pathname === "/shops" || location.pathname.startsWith("/shops/")
+                    : location.pathname.startsWith(item.url);
+                const hasChildren = !!item.children?.length;
+
+                if (hasChildren && !collapsed) {
+                  const isOpen = openShops || isShopsActive;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        onClick={() => setOpenShops((o) => !o)}
+                        isActive={isActive}
+                        className={`h-9 rounded-md transition-all px-3 ${
+                          isActive
+                            ? "bg-primary/10 text-primary font-semibold hover:bg-primary/15 hover:text-primary"
+                            : "text-sidebar-foreground/80 hover:text-foreground hover:bg-sidebar-accent"
+                        }`}
+                      >
+                        <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-primary" : ""}`} />
+                        <span className="text-[13px]">{item.title}</span>
+                        <ChevronDown
+                          className={`ml-auto h-3.5 w-3.5 transition-transform ${
+                            isOpen ? "rotate-0" : "-rotate-90"
+                          }`}
+                        />
+                      </SidebarMenuButton>
+                      {isOpen && (
+                        <SidebarMenuSub className="mr-0 pr-0 border-sidebar-border/60">
+                          {item.children!.map((c) => {
+                            const childActive =
+                              c.url === "/shops"
+                                ? location.pathname === "/shops" ||
+                                  /^\/shops\/(new|[a-zA-Z0-9_-]+)$/.test(location.pathname)
+                                : location.pathname.startsWith(c.url);
+                            return (
+                              <SidebarMenuSubItem key={c.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={childActive}
+                                  className={`h-8 text-[12.5px] ${
+                                    childActive
+                                      ? "bg-primary/10 text-primary font-semibold"
+                                      : "text-sidebar-foreground/80"
+                                  }`}
+                                >
+                                  <Link to={c.url} className="flex items-center gap-2">
+                                    <c.icon className="h-3.5 w-3.5 shrink-0" />
+                                    <span>{c.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      )}
+                    </SidebarMenuItem>
+                  );
+                }
+
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
@@ -74,7 +154,7 @@ export function AppSidebar() {
                       <Link to={item.url} className="flex items-center gap-2.5">
                         <item.icon className={`h-4 w-4 shrink-0 ${isActive ? "text-primary" : ""}`} />
                         {!collapsed && <span className="text-[13px]">{item.title}</span>}
-                        {!collapsed && isActive && (
+                        {!collapsed && isActive && !hasChildren && (
                           <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
                         )}
                       </Link>

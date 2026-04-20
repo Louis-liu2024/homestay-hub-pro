@@ -1,21 +1,36 @@
 import { Link, useLocation, useParams } from "@tanstack/react-router";
 import { ChevronRight, Home } from "lucide-react";
-import { mockHotels } from "@/lib/mock-data";
+import { mockHotels, mockShops } from "@/lib/mock-data";
 
 const ROUTE_LABELS: Record<string, { label: string; subtitle?: string }> = {
   "/dashboard": { label: "数据大盘", subtitle: "全面监控运营核心数据指标" },
   "/data-pool": { label: "数据池", subtitle: "管理酒店与民宿数据源" },
   "/price-calculator": { label: "价格计算器", subtitle: "配置发布价格涨幅规则" },
   "/orders": { label: "订单管理", subtitle: "跟踪与处理订房任务" },
+  "/ota-accounts": { label: "OTA账号", subtitle: "管理多平台账号与配额" },
   "/shops": { label: "店铺管理", subtitle: "管理店铺信息与渠道API" },
 };
 
+function findShop(id: string) {
+  // 优先 localStorage（新建的店铺）
+  try {
+    const raw = localStorage.getItem("hotelos.shops.list");
+    if (raw) {
+      const list = JSON.parse(raw) as { id: string; name: string }[];
+      const s = list.find((x) => x.id === id);
+      if (s) return s;
+    }
+  } catch {
+    /* ignore */
+  }
+  return mockShops.find((s) => s.id === id);
+}
+
 export function Breadcrumbs() {
   const location = useLocation();
-  const params = useParams({ strict: false }) as { hotelId?: string };
+  const params = useParams({ strict: false }) as { hotelId?: string; shopId?: string };
   const path = location.pathname;
 
-  // Build crumb chain
   const crumbs: { label: string; to?: string }[] = [];
 
   if (path.startsWith("/dashboard")) {
@@ -30,11 +45,22 @@ export function Breadcrumbs() {
     crumbs.push({ label: "价格计算器" });
   } else if (path.startsWith("/orders")) {
     crumbs.push({ label: "订单管理" });
+  } else if (path.startsWith("/ota-accounts")) {
+    crumbs.push({ label: "OTA账号" });
   } else if (path.startsWith("/shops")) {
-    crumbs.push({ label: "店铺管理" });
+    crumbs.push({ label: "店铺管理", to: "/shops" });
+    if (path === "/shops/new") {
+      crumbs.push({ label: "新建店铺" });
+    } else if (path === "/shops/hotels") {
+      crumbs.push({ label: "酒店列表" });
+    } else if (params.shopId) {
+      const shop = findShop(params.shopId);
+      crumbs.push({ label: shop?.name || "店铺详情" });
+    } else if (path === "/shops") {
+      crumbs.push({ label: "店铺列表" });
+    }
   }
 
-  // Match the longest known prefix for subtitle
   const matchKey = Object.keys(ROUTE_LABELS).find((k) => path.startsWith(k));
   const meta = matchKey ? ROUTE_LABELS[matchKey] : undefined;
 

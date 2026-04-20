@@ -9,16 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppShopsRouteImport } from './routes/_app.shops'
 import { Route as AppPriceCalculatorRouteImport } from './routes/_app.price-calculator'
 import { Route as AppOtaAccountsRouteImport } from './routes/_app.ota-accounts'
 import { Route as AppOrdersRouteImport } from './routes/_app.orders'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppShopsIndexRouteImport } from './routes/_app.shops.index'
 import { Route as AppDataPoolIndexRouteImport } from './routes/_app.data-pool.index'
+import { Route as AppShopsNewRouteImport } from './routes/_app.shops.new'
+import { Route as AppShopsHotelsRouteImport } from './routes/_app.shops.hotels'
+import { Route as AppShopsShopIdRouteImport } from './routes/_app.shops.$shopId'
 import { Route as AppDataPoolHotelIdRouteImport } from './routes/_app.data-pool.$hotelId'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -27,11 +42,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AppShopsRoute = AppShopsRouteImport.update({
-  id: '/shops',
-  path: '/shops',
-  getParentRoute: () => AppRoute,
 } as any)
 const AppPriceCalculatorRoute = AppPriceCalculatorRouteImport.update({
   id: '/price-calculator',
@@ -53,9 +63,29 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppShopsIndexRoute = AppShopsIndexRouteImport.update({
+  id: '/shops/',
+  path: '/shops/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDataPoolIndexRoute = AppDataPoolIndexRouteImport.update({
   id: '/data-pool/',
   path: '/data-pool/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppShopsNewRoute = AppShopsNewRouteImport.update({
+  id: '/shops/new',
+  path: '/shops/new',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppShopsHotelsRoute = AppShopsHotelsRouteImport.update({
+  id: '/shops/hotels',
+  path: '/shops/hotels',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppShopsShopIdRoute = AppShopsShopIdRouteImport.update({
+  id: '/shops/$shopId',
+  path: '/shops/$shopId',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDataPoolHotelIdRoute = AppDataPoolHotelIdRouteImport.update({
@@ -66,77 +96,123 @@ const AppDataPoolHotelIdRoute = AppDataPoolHotelIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/dashboard': typeof AppDashboardRoute
   '/orders': typeof AppOrdersRoute
   '/ota-accounts': typeof AppOtaAccountsRoute
   '/price-calculator': typeof AppPriceCalculatorRoute
-  '/shops': typeof AppShopsRoute
   '/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
+  '/shops/$shopId': typeof AppShopsShopIdRoute
+  '/shops/hotels': typeof AppShopsHotelsRoute
+  '/shops/new': typeof AppShopsNewRoute
   '/data-pool/': typeof AppDataPoolIndexRoute
+  '/shops/': typeof AppShopsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/dashboard': typeof AppDashboardRoute
   '/orders': typeof AppOrdersRoute
   '/ota-accounts': typeof AppOtaAccountsRoute
   '/price-calculator': typeof AppPriceCalculatorRoute
-  '/shops': typeof AppShopsRoute
   '/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
+  '/shops/$shopId': typeof AppShopsShopIdRoute
+  '/shops/hotels': typeof AppShopsHotelsRoute
+  '/shops/new': typeof AppShopsNewRoute
   '/data-pool': typeof AppDataPoolIndexRoute
+  '/shops': typeof AppShopsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/orders': typeof AppOrdersRoute
   '/_app/ota-accounts': typeof AppOtaAccountsRoute
   '/_app/price-calculator': typeof AppPriceCalculatorRoute
-  '/_app/shops': typeof AppShopsRoute
   '/_app/data-pool/$hotelId': typeof AppDataPoolHotelIdRoute
+  '/_app/shops/$shopId': typeof AppShopsShopIdRoute
+  '/_app/shops/hotels': typeof AppShopsHotelsRoute
+  '/_app/shops/new': typeof AppShopsNewRoute
   '/_app/data-pool/': typeof AppDataPoolIndexRoute
+  '/_app/shops/': typeof AppShopsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forgot-password'
+    | '/login'
     | '/dashboard'
     | '/orders'
     | '/ota-accounts'
     | '/price-calculator'
-    | '/shops'
     | '/data-pool/$hotelId'
+    | '/shops/$shopId'
+    | '/shops/hotels'
+    | '/shops/new'
     | '/data-pool/'
+    | '/shops/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
+    | '/login'
     | '/dashboard'
     | '/orders'
     | '/ota-accounts'
     | '/price-calculator'
-    | '/shops'
     | '/data-pool/$hotelId'
+    | '/shops/$shopId'
+    | '/shops/hotels'
+    | '/shops/new'
     | '/data-pool'
+    | '/shops'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/forgot-password'
+    | '/login'
     | '/_app/dashboard'
     | '/_app/orders'
     | '/_app/ota-accounts'
     | '/_app/price-calculator'
-    | '/_app/shops'
     | '/_app/data-pool/$hotelId'
+    | '/_app/shops/$shopId'
+    | '/_app/shops/hotels'
+    | '/_app/shops/new'
     | '/_app/data-pool/'
+    | '/_app/shops/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -150,13 +226,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_app/shops': {
-      id: '/_app/shops'
-      path: '/shops'
-      fullPath: '/shops'
-      preLoaderRoute: typeof AppShopsRouteImport
-      parentRoute: typeof AppRoute
     }
     '/_app/price-calculator': {
       id: '/_app/price-calculator'
@@ -186,11 +255,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/shops/': {
+      id: '/_app/shops/'
+      path: '/shops'
+      fullPath: '/shops/'
+      preLoaderRoute: typeof AppShopsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/data-pool/': {
       id: '/_app/data-pool/'
       path: '/data-pool'
       fullPath: '/data-pool/'
       preLoaderRoute: typeof AppDataPoolIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/shops/new': {
+      id: '/_app/shops/new'
+      path: '/shops/new'
+      fullPath: '/shops/new'
+      preLoaderRoute: typeof AppShopsNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/shops/hotels': {
+      id: '/_app/shops/hotels'
+      path: '/shops/hotels'
+      fullPath: '/shops/hotels'
+      preLoaderRoute: typeof AppShopsHotelsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/shops/$shopId': {
+      id: '/_app/shops/$shopId'
+      path: '/shops/$shopId'
+      fullPath: '/shops/$shopId'
+      preLoaderRoute: typeof AppShopsShopIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/data-pool/$hotelId': {
@@ -208,9 +305,12 @@ interface AppRouteChildren {
   AppOrdersRoute: typeof AppOrdersRoute
   AppOtaAccountsRoute: typeof AppOtaAccountsRoute
   AppPriceCalculatorRoute: typeof AppPriceCalculatorRoute
-  AppShopsRoute: typeof AppShopsRoute
   AppDataPoolHotelIdRoute: typeof AppDataPoolHotelIdRoute
+  AppShopsShopIdRoute: typeof AppShopsShopIdRoute
+  AppShopsHotelsRoute: typeof AppShopsHotelsRoute
+  AppShopsNewRoute: typeof AppShopsNewRoute
   AppDataPoolIndexRoute: typeof AppDataPoolIndexRoute
+  AppShopsIndexRoute: typeof AppShopsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -218,9 +318,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppOrdersRoute: AppOrdersRoute,
   AppOtaAccountsRoute: AppOtaAccountsRoute,
   AppPriceCalculatorRoute: AppPriceCalculatorRoute,
-  AppShopsRoute: AppShopsRoute,
   AppDataPoolHotelIdRoute: AppDataPoolHotelIdRoute,
+  AppShopsShopIdRoute: AppShopsShopIdRoute,
+  AppShopsHotelsRoute: AppShopsHotelsRoute,
+  AppShopsNewRoute: AppShopsNewRoute,
   AppDataPoolIndexRoute: AppDataPoolIndexRoute,
+  AppShopsIndexRoute: AppShopsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -228,6 +331,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
