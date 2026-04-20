@@ -4,14 +4,25 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@tanstack/react-router";
-import { Search, Upload, Tag, Download } from "lucide-react";
+import { Search, Upload, Tag, Download, TrendingUp, Pencil, BedDouble, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/DataTablePagination";
 import { PriceQueryDialog } from "@/components/PriceQueryDialog";
 import { PublishDialog } from "@/components/PublishDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { Channel, Hotel } from "@/lib/types";
 
 const CHANNELS: (Channel | "全部")[] = ["全部", "携程", "美团", "Booking", "飞猪", "去哪儿", "Agoda", "途家", "小红书"];
