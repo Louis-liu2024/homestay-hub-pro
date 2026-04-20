@@ -26,6 +26,32 @@ export interface Hotel {
   decorationYear?: number;
   checkInTime?: string;
   checkOutTime?: string;
+  // Extended detail fields (more-info panel)
+  hotelExternalId?: string;       // 酒店ID（外部）
+  internalId?: string;            // 内部ID
+  cityId?: string;                // 城市ID
+  provinceId?: string;            // 省份ID
+  provinceName?: string;          // 省份名称
+  countryId?: string;             // 国家ID
+  countryName?: string;           // 国家名称
+  countryNameEn?: string;         // 国家名称(英文)
+  countryType?: string;           // 国家类型
+  regionId?: string;              // 区域ID
+  locationAddress?: string;       // 位置地址
+  longitude?: string;             // 经度
+  latitude?: string;              // 纬度
+  starLevel?: number;             // 星级
+  ratingDesc?: string;            // 评价描述
+  reviewCount?: number;           // 评论数
+  totalCount?: number;            // 总数量
+  medalType?: number;             // 奖牌类型
+  medalName?: string;             // 奖牌名称
+  email?: string;                 // 邮箱
+  frontDeskHours?: string;        // 前台营业时间
+  petPolicy?: string;             // 宠物政策
+  destinationName?: string;       // 目的地名称
+  destinationNameEn?: string;     // 目的地名称(英文)
+  timezoneOffset?: string;        // 时区偏移
 }
 
 export interface Room {
