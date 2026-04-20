@@ -155,18 +155,17 @@ export function ShopDetail() {
   const [rules, setRules] = useState<ShopRules>(() => {
     try {
       const raw = localStorage.getItem(`${RULES_KEY}.${shopId}`);
-      if (raw) return JSON.parse(raw);
+      if (raw) return { ...DEFAULT_RULES, ...JSON.parse(raw) };
     } catch {
       /* ignore */
     }
-    return {
-      bookingRule: "支持提前 30 天预定;同一身份证最多预定 5 间房",
-      markupRule: "周末加价 10%;节假日加价 20%",
-      cancelPolicy: "入住前 24 小时免费取消;之后扣除首晚房费",
-      contactInfo: "联系电话:400-888-0000\n邮箱:contact@hotel.com",
-      checkInRule: "入住时间:14:00 后\n离店时间:12:00 前\n需出示身份证原件",
-    };
+    return DEFAULT_RULES;
   });
+
+  const persistRules = (next: ShopRules) => {
+    setRules(next);
+    localStorage.setItem(`${RULES_KEY}.${shopId}`, JSON.stringify(next));
+  };
 
   if (!shop) {
     return (
