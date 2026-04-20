@@ -1043,3 +1043,12 @@ function SecretRow({
     </div>
   );
 }
+
+function RuleRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[88px_1fr] gap-4 items-start">
+      <div className="text-[12.5px] font-medium text-foreground pt-2 text-right">{label}</div>
+      <div className="min-w-0">{children}</div>
+    </div>
+  );
+}
