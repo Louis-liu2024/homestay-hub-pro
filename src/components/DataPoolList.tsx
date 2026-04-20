@@ -1,18 +1,22 @@
-import { useState, useMemo } from "react";
-import { mockHotels } from "@/lib/mock-data";
+import { useState, useMemo, useEffect } from "react";
+import { mockHotels, mockShops } from "@/lib/mock-data";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Link } from "@tanstack/react-router";
-import { Search, Upload, Download, TrendingUp, Pencil, BedDouble, Trash2 } from "lucide-react";
+import { Search, Download, TrendingUp, Pencil, BedDouble, Trash2, DoorOpen, DoorClosed } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/DataTablePagination";
-import { PriceQueryDialog } from "@/components/PriceQueryDialog";
-import { PublishDialog } from "@/components/PublishDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,47 +27,65 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { Channel, Hotel } from "@/lib/types";
+import type { Hotel, Shop } from "@/lib/types";
 
-const CHANNELS: (Channel | "全部")[] = ["全部", "携程", "美团", "Booking", "飞猪", "去哪儿", "Agoda", "途家", "小红书"];
+const SHOP_KEY = "hotelos.shops.list";
+
+function loadShops(): Shop[] {
+  try {
+    const raw = localStorage.getItem(SHOP_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    /* ignore */
+  }
+  return mockShops;
+}
 
 export function DataPoolList() {
+  const [shops] = useState<Shop[]>(() => loadShops());
   const [hotels, setHotels] = useState<Hotel[]>(() =>
-    mockHotels.map((h) => ({ ...h, published: h.published ?? Math.random() > 0.4 })),
+    mockHotels.map((h, i) => ({
+      ...h,
+      published: h.published ?? i % 3 !== 0,
+      saleStatus: h.saleStatus ?? (i % 4 === 0 ? "关房" : "开房"),
+    })),
   );
   const [search, setSearch] = useState("");
-  const [activeChannel, setActiveChannel] = useState<Channel | "全部">("全部");
+  const [shopFilter, setShopFilter] = useState<string>("all");
+  const [publishFilter, setPublishFilter] = useState<string>("all");
+  const [saleFilter, setSaleFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [priceQueryHotel, setPriceQueryHotel] = useState<Hotel | null>(null);
-  const [publishHotel, setPublishHotel] = useState<Hotel | null>(null);
   const [deleteHotel, setDeleteHotel] = useState<Hotel | null>(null);
 
-  const channelCounts = useMemo(() => {
-    const counts: Record<string, number> = { 全部: hotels.length };
-    for (const h of hotels) counts[h.channel] = (counts[h.channel] ?? 0) + 1;
-    return counts;
-  }, [hotels]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, shopFilter, publishFilter, saleFilter]);
 
   const filtered = useMemo(() => {
     let list = hotels;
-    if (activeChannel !== "全部") list = list.filter((h) => h.channel === activeChannel);
+    if (shopFilter !== "all") list = list.filter((h) => h.shopId === shopFilter);
+    if (publishFilter !== "all") {
+      const want = publishFilter === "published";
+      list = list.filter((h) => !!h.published === want);
+    }
+    if (saleFilter !== "all") list = list.filter((h) => (h.saleStatus ?? "开房") === saleFilter);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
         (h) =>
           h.name.toLowerCase().includes(q) ||
-          h.channel.toLowerCase().includes(q) ||
-          h.tags.some((t) => t.includes(q))
+          (h.hotelExternalId ?? "").toLowerCase().includes(q) ||
+          h.tags.some((t) => t.includes(q)),
       );
     }
     return list;
-  }, [hotels, search, activeChannel]);
+  }, [hotels, search, shopFilter, publishFilter, saleFilter]);
 
   const paged = useMemo(
     () => filtered.slice((page - 1) * pageSize, page * pageSize),
-    [filtered, page, pageSize]
+    [filtered, page, pageSize],
   );
 
   const toggleSelect = (id: string) => {
@@ -76,24 +98,27 @@ export function DataPoolList() {
   };
 
   const toggleAll = () => {
-    if (selected.size === paged.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(paged.map((h) => h.id)));
-    }
-  };
-
-  const handleBatchPublish = () => {
-    setHotels((prev) =>
-      prev.map((h) => (selected.has(h.id) ? { ...h, published: true } : h)),
-    );
-    toast.success(`已发布 ${selected.size} 个酒店`);
-    setSelected(new Set());
+    if (selected.size === paged.length) setSelected(new Set());
+    else setSelected(new Set(paged.map((h) => h.id)));
   };
 
   const togglePublished = (id: string, next: boolean) => {
     setHotels((prev) => prev.map((h) => (h.id === id ? { ...h, published: next } : h)));
     toast.success(next ? "酒店已发布" : "酒店已下线");
+  };
+
+  const toggleSaleStatus = (id: string, next: "开房" | "关房") => {
+    setHotels((prev) => prev.map((h) => (h.id === id ? { ...h, saleStatus: next } : h)));
+    toast.success(next === "开房" ? "已开房" : "已关房");
+  };
+
+  const handleBatchSale = (status: "开房" | "关房") => {
+    if (selected.size === 0) return;
+    setHotels((prev) =>
+      prev.map((h) => (selected.has(h.id) ? { ...h, saleStatus: status } : h)),
+    );
+    toast.success(`已${status === "开房" ? "批量开房" : "批量关房"} ${selected.size} 个酒店`);
+    setSelected(new Set());
   };
 
   const handleDelete = () => {
@@ -104,17 +129,26 @@ export function DataPoolList() {
   };
 
   const handleExport = () => {
-    const headers = ["酒店名称", "渠道", "评分", "城市", "品牌", "房间量", "7天空房率", "订单数", "均价"];
+    const headers = ["酒店ID", "酒店名称", "所属店铺", "评分", "城市", "品牌", "房间量", "发布状态", "售卖状态", "订单数", "均价"];
     const rows = filtered.map((h) => [
-      h.name, h.channel, h.rating, h.city, h.brand, h.roomCount,
-      `${(h.vacancyRate7d * 100).toFixed(0)}%`, h.totalOrders, h.avgPrice,
+      h.hotelExternalId ?? h.id,
+      h.name,
+      shops.find((s) => s.id === h.shopId)?.name ?? "-",
+      h.rating,
+      h.city,
+      h.brand,
+      h.roomCount,
+      h.published ? "已发布" : "未发布",
+      h.saleStatus ?? "开房",
+      h.totalOrders,
+      h.avgPrice,
     ]);
     const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `酒店数据_${activeChannel}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `酒店列表_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success(`已导出 ${filtered.length} 条数据`);
@@ -122,53 +156,67 @@ export function DataPoolList() {
 
   return (
     <div className="p-5 md:p-7 space-y-4 text-[13px]">
-      {/* Channel Tabs */}
-      <Tabs value={activeChannel} onValueChange={(v) => { setActiveChannel(v as Channel | "全部"); setPage(1); }}>
-        <TabsList className="h-9 bg-muted/50 p-1 flex-wrap">
-          {CHANNELS.map((ch) => (
-            <TabsTrigger
-              key={ch}
-              value={ch}
-              className="text-[13px] px-3 h-7 data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm"
-            >
-              {ch}
-              <span className="ml-1.5 text-[11px] text-muted-foreground data-[state=active]:text-primary/70">
-                {channelCounts[ch] ?? 0}
-              </span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-
-      {/* Filter bar — only search + filters */}
+      {/* Filter bar */}
       <Card className="border-border/60 bg-card">
         <CardContent className="py-3">
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder="搜索酒店名称、渠道、标签..."
+                placeholder="搜索酒店名称 / ID / 标签..."
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
+                onChange={(e) => setSearch(e.target.value)}
                 className="h-8 text-[13px] pl-7 w-64"
               />
             </div>
+            <Select value={shopFilter} onValueChange={setShopFilter}>
+              <SelectTrigger className="w-40 h-8 text-[13px]">
+                <SelectValue placeholder="全部店铺" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部店铺</SelectItem>
+                {shops.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={publishFilter} onValueChange={setPublishFilter}>
+              <SelectTrigger className="w-32 h-8 text-[13px]">
+                <SelectValue placeholder="发布状态" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部状态</SelectItem>
+                <SelectItem value="published">已发布</SelectItem>
+                <SelectItem value="unpublished">未发布</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={saleFilter} onValueChange={setSaleFilter}>
+              <SelectTrigger className="w-32 h-8 text-[13px]">
+                <SelectValue placeholder="售卖状态" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">全部售卖</SelectItem>
+                <SelectItem value="开房">开房</SelectItem>
+                <SelectItem value="关房">关房</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Toolbar between filter & list */}
+      {/* Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-[12px] text-muted-foreground">共 <b className="text-foreground">{filtered.length}</b> 条数据</span>
+        <span className="text-[12px] text-muted-foreground">
+          共 <b className="text-foreground">{filtered.length}</b> 条数据
+        </span>
         <Button size="sm" variant="outline" className="h-8" onClick={handleExport}>
           <Download className="h-3.5 w-3.5 mr-1" />导出
         </Button>
       </div>
 
-      {/* Table — left & right frozen, middle horizontally scrollable */}
+      {/* Table */}
       <div className="border border-border/50 rounded-lg bg-card overflow-hidden">
         <div className="flex">
           {/* Frozen left */}
@@ -204,66 +252,65 @@ export function DataPoolList() {
 
           {/* Scrollable middle */}
           <div className="flex-1 overflow-x-auto min-w-0">
-            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 min-w-[900px]">
+            <div className="flex items-center h-10 border-b border-border/40 bg-muted/40 min-w-[1000px]">
+              <HeaderCell w="w-28">酒店ID</HeaderCell>
               <HeaderCell w="w-16">评分</HeaderCell>
-              <HeaderCell w="w-20">渠道</HeaderCell>
+              <HeaderCell w="w-32">所属店铺</HeaderCell>
               <HeaderCell w="w-20">房间量</HeaderCell>
-              <HeaderCell w="w-24">7天空房率</HeaderCell>
-              <HeaderCell w="w-24">发布状态</HeaderCell>
-              <HeaderCell w="w-40">标签</HeaderCell>
+              <HeaderCell w="w-28">发布状态</HeaderCell>
+              <HeaderCell w="w-28">售卖状态</HeaderCell>
               <HeaderCell w="w-20">城市</HeaderCell>
               <HeaderCell w="w-24">品牌</HeaderCell>
               <HeaderCell w="w-20">订单数</HeaderCell>
               <HeaderCell w="w-24">均价(¥)</HeaderCell>
             </div>
-            {paged.map((hotel, idx) => (
-              <div
-                key={hotel.id}
-                className={`flex items-center h-12 border-b border-border/30 min-w-[900px] hover:bg-accent/40 transition-colors ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
-              >
-                <DataCell w="w-16">
-                  <span className="text-[13px] font-semibold text-warning">{hotel.rating}</span>
-                </DataCell>
-                <DataCell w="w-20">
-                  <Badge variant="outline" className="text-[11px] h-5 border-border/60">{hotel.channel}</Badge>
-                </DataCell>
-                <DataCell w="w-20"><span className="text-[13px] font-mono">{hotel.roomCount}</span></DataCell>
-                <DataCell w="w-24">
-                  <span className={`text-[13px] font-mono font-medium ${hotel.vacancyRate7d > 0.5 ? "text-destructive" : "text-success"}`}>
-                    {(hotel.vacancyRate7d * 100).toFixed(0)}%
-                  </span>
-                </DataCell>
-                <DataCell w="w-24">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={!!hotel.published}
-                      onCheckedChange={(v) => togglePublished(hotel.id, v)}
-                      aria-label="切换酒店发布状态"
-                    />
-                    <span
-                      className={`text-[12px] ${
-                        hotel.published ? "text-success" : "text-muted-foreground"
-                      }`}
+            {paged.map((hotel, idx) => {
+              const shop = shops.find((s) => s.id === hotel.shopId);
+              const sale = hotel.saleStatus ?? "开房";
+              return (
+                <div
+                  key={hotel.id}
+                  className={`flex items-center h-12 border-b border-border/30 min-w-[1000px] hover:bg-accent/40 transition-colors ${idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"}`}
+                >
+                  <DataCell w="w-28">
+                    <span className="text-[12px] font-mono text-muted-foreground truncate">{hotel.hotelExternalId ?? hotel.id}</span>
+                  </DataCell>
+                  <DataCell w="w-16">
+                    <span className="text-[13px] font-semibold text-warning">{hotel.rating}</span>
+                  </DataCell>
+                  <DataCell w="w-32">
+                    <span className="text-[12px] truncate">{shop?.name ?? "-"}</span>
+                  </DataCell>
+                  <DataCell w="w-20"><span className="text-[13px] font-mono">{hotel.roomCount}</span></DataCell>
+                  <DataCell w="w-28">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
+                      <Switch
+                        checked={!!hotel.published}
+                        onCheckedChange={(v) => togglePublished(hotel.id, v)}
+                        aria-label="切换发布状态"
+                      />
+                      <span className={`text-[12px] ${hotel.published ? "text-success" : "text-muted-foreground"}`}>
+                        {hotel.published ? "已发布" : "未发布"}
+                      </span>
+                    </div>
+                  </DataCell>
+                  <DataCell w="w-28">
+                    <Badge
+                      variant="outline"
+                      className={`text-[11px] h-5 cursor-pointer ${sale === "开房" ? "border-success/60 text-success bg-success/10" : "border-destructive/50 text-destructive bg-destructive/10"}`}
+                      onClick={() => toggleSaleStatus(hotel.id, sale === "开房" ? "关房" : "开房")}
                     >
-                      {hotel.published ? "已发布" : "未发布"}
-                    </span>
-                  </div>
-                </DataCell>
-                <DataCell w="w-40">
-                  <div className="flex gap-1 flex-wrap">
-                    {hotel.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-[11px] h-4 px-1.5 bg-primary/10 text-primary border-0">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </DataCell>
-                <DataCell w="w-20"><span className="text-[13px]">{hotel.city}</span></DataCell>
-                <DataCell w="w-24"><span className="text-[13px]">{hotel.brand}</span></DataCell>
-                <DataCell w="w-20"><span className="text-[13px] font-mono">{hotel.totalOrders}</span></DataCell>
-                <DataCell w="w-24"><span className="text-[13px] font-mono font-medium">¥{hotel.avgPrice}</span></DataCell>
-              </div>
-            ))}
+                      {sale === "开房" ? <DoorOpen className="h-3 w-3 mr-1" /> : <DoorClosed className="h-3 w-3 mr-1" />}
+                      {sale}
+                    </Badge>
+                  </DataCell>
+                  <DataCell w="w-20"><span className="text-[13px]">{hotel.city}</span></DataCell>
+                  <DataCell w="w-24"><span className="text-[13px]">{hotel.brand}</span></DataCell>
+                  <DataCell w="w-20"><span className="text-[13px] font-mono">{hotel.totalOrders}</span></DataCell>
+                  <DataCell w="w-24"><span className="text-[13px] font-mono font-medium">¥{hotel.avgPrice}</span></DataCell>
+                </div>
+              );
+            })}
           </div>
 
           {/* Frozen right */}
@@ -334,30 +381,25 @@ export function DataPoolList() {
         onPageSizeChange={setPageSize}
       />
 
-      {/* Floating batch publish */}
+      {/* Floating batch actions */}
       {selected.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 glass border border-primary/30 rounded-xl px-6 py-3 flex items-center gap-4 z-50 glow-primary">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 glass border border-primary/30 rounded-xl px-6 py-3 flex items-center gap-3 z-50 glow-primary">
           <span className="text-[13px] font-medium text-foreground">
             已选择 <span className="text-primary font-bold">{selected.size}</span> 个酒店
           </span>
-          <Button size="sm" onClick={handleBatchPublish} className="h-8">
-            <Upload className="h-3.5 w-3.5 mr-1" />
-            一键发布
+          <Button size="sm" variant="outline" className="h-8" onClick={() => handleBatchSale("开房")}>
+            <DoorOpen className="h-3.5 w-3.5 mr-1" />
+            批量开房
+          </Button>
+          <Button size="sm" variant="outline" className="h-8" onClick={() => handleBatchSale("关房")}>
+            <DoorClosed className="h-3.5 w-3.5 mr-1" />
+            批量关房
+          </Button>
+          <Button size="sm" variant="ghost" className="h-8" onClick={() => setSelected(new Set())}>
+            取消
           </Button>
         </div>
       )}
-
-      <PriceQueryDialog
-        hotel={priceQueryHotel}
-        open={!!priceQueryHotel}
-        onOpenChange={(o) => !o && setPriceQueryHotel(null)}
-      />
-
-      <PublishDialog
-        hotel={publishHotel}
-        open={!!publishHotel}
-        onOpenChange={(o) => !o && setPublishHotel(null)}
-      />
 
       <AlertDialog open={!!deleteHotel} onOpenChange={(o) => !o && setDeleteHotel(null)}>
         <AlertDialogContent>
