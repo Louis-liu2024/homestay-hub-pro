@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
   ArrowLeft, Upload, Bell, MapPin, Phone, Star, Tag,
   Wifi, Bath, Sun, Coffee, Users, Maximize, Building2, Calendar, Clock,
-  LayoutGrid, List as ListIcon,
+  LayoutGrid, List as ListIcon, Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PriceQueryDialog } from "@/components/PriceQueryDialog";
 import { PublishDialog } from "@/components/PublishDialog";
-import type { Room } from "@/lib/types";
+import type { Hotel, Room } from "@/lib/types";
 
 type RoomView = "card" | "list";
 
@@ -25,6 +26,7 @@ export function HotelDetail({ hotelId }: { hotelId: string }) {
   const [roomView, setRoomView] = useState<RoomView>("card");
   const [priceQueryRoomIds, setPriceQueryRoomIds] = useState<string[] | undefined>(undefined);
   const [publishRoomIds, setPublishRoomIds] = useState<string[] | undefined>(undefined);
+  const [moreInfoOpen, setMoreInfoOpen] = useState(false);
 
   if (!hotel) {
     return (
@@ -117,15 +119,22 @@ export function HotelDetail({ hotelId }: { hotelId: string }) {
 
         <div className="space-y-3">
           <Card className="border-border/60 bg-card">
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
               <CardTitle className="text-[13px] font-semibold">酒店信息</CardTitle>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-[12px] text-primary hover:text-primary"
+                onClick={() => setMoreInfoOpen(true)}
+              >
+                <Info className="h-3.5 w-3.5 mr-1" />更多信息
+              </Button>
             </CardHeader>
             <CardContent className="space-y-2 text-[13px]">
               <InfoLine icon={<Building2 className="h-3.5 w-3.5" />} label="品牌" value={hotel.brand} />
+              <InfoLine icon={<Star className="h-3.5 w-3.5" />} label="评分" value={String(hotel.rating)} />
               <InfoLine icon={<Calendar className="h-3.5 w-3.5" />} label="开业年份" value={String(hotel.openYear ?? "—")} />
-              <InfoLine icon={<Calendar className="h-3.5 w-3.5" />} label="装修年份" value={String(hotel.decorationYear ?? "—")} />
-              <InfoLine icon={<Clock className="h-3.5 w-3.5" />} label="入住时间" value={hotel.checkInTime ?? "—"} />
-              <InfoLine icon={<Clock className="h-3.5 w-3.5" />} label="离店时间" value={hotel.checkOutTime ?? "—"} />
+              <InfoLine icon={<Clock className="h-3.5 w-3.5" />} label="入住 / 离店" value={`${hotel.checkInTime ?? "—"} / ${hotel.checkOutTime ?? "—"}`} />
               <InfoLine icon={<Users className="h-3.5 w-3.5" />} label="房间数" value={String(hotel.roomCount)} />
               <InfoLine
                 icon={<Tag className="h-3.5 w-3.5" />}
@@ -213,7 +222,93 @@ export function HotelDetail({ hotelId }: { hotelId: string }) {
         onOpenChange={setPublishOpen}
         preselectedRoomIds={publishRoomIds}
       />
+      <MoreInfoSheet hotel={hotel} open={moreInfoOpen} onOpenChange={setMoreInfoOpen} />
     </div>
+  );
+}
+
+function MoreInfoSheet({ hotel, open, onOpenChange }: { hotel: Hotel; open: boolean; onOpenChange: (o: boolean) => void }) {
+  const fields: Array<{ label: string; value: React.ReactNode }> = [
+    { label: "酒店ID", value: hotel.hotelExternalId ?? "—" },
+    { label: "内部ID", value: hotel.internalId ?? "—" },
+    { label: "酒店名称", value: hotel.name },
+    { label: "城市", value: hotel.city },
+    { label: "城市ID", value: hotel.cityId ?? "—" },
+    { label: "省份ID", value: hotel.provinceId ?? "—" },
+    { label: "省份名称", value: hotel.provinceName ?? "—" },
+    { label: "国家ID", value: hotel.countryId ?? "—" },
+    { label: "国家名称", value: hotel.countryName ?? "—" },
+    { label: "国家名称(英文)", value: hotel.countryNameEn ?? "—" },
+    { label: "国家类型", value: hotel.countryType ?? "—" },
+    { label: "区域ID", value: hotel.regionId ?? "—" },
+    { label: "地址", value: hotel.address },
+    { label: "位置地址", value: hotel.locationAddress ?? "—" },
+    { label: "经度", value: hotel.longitude ?? "—" },
+    { label: "纬度", value: hotel.latitude ?? "—" },
+    {
+      label: "星级",
+      value: (
+        <span className="inline-flex items-center gap-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star key={i} className={`h-3 w-3 ${i < (hotel.starLevel ?? 0) ? "text-warning fill-warning" : "text-muted-foreground/40"}`} />
+          ))}
+          <span className="text-muted-foreground ml-1">{hotel.starLevel ?? 0}</span>
+        </span>
+      ),
+    },
+    { label: "评分", value: <span className="text-destructive font-semibold">{hotel.rating}</span> },
+    {
+      label: "评价描述",
+      value: hotel.ratingDesc ? (
+        <Badge variant="secondary" className="text-[11px] h-5 bg-primary/10 text-primary border-0">{hotel.ratingDesc}</Badge>
+      ) : "—",
+    },
+    { label: "评论数", value: hotel.reviewCount?.toLocaleString() ?? "—" },
+    { label: "总数量", value: hotel.totalCount?.toLocaleString() ?? "—" },
+    { label: "奖牌类型", value: hotel.medalType ?? "—" },
+    {
+      label: "奖牌名称",
+      value: hotel.medalName ? (
+        <Badge variant="outline" className="text-[11px] h-5 border-border/60 bg-muted/40">{hotel.medalName}</Badge>
+      ) : "—",
+    },
+    { label: "电话", value: hotel.contactPhone },
+    { label: "邮箱", value: hotel.email ?? "—" },
+    { label: "前台营业时间", value: hotel.frontDeskHours ?? "—" },
+    { label: "入住退房时间", value: `入住时间：${hotel.checkInTime ?? "—"}后 -> 退房时间：${hotel.checkOutTime ?? "—"}前` },
+    { label: "宠物政策", value: hotel.petPolicy ?? "—" },
+    { label: "开业年份", value: hotel.openYear ? `${hotel.openYear}年` : "—" },
+    { label: "房间总数", value: `${hotel.roomCount}间` },
+    { label: "目的地名称", value: hotel.destinationName ?? "—" },
+    { label: "目的地名称(英文)", value: hotel.destinationNameEn ?? "—" },
+    { label: "时区偏移", value: hotel.timezoneOffset ?? "—" },
+  ];
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-2xl p-0 flex flex-col">
+        <SheetHeader className="px-5 py-4 border-b border-border/60">
+          <SheetTitle className="text-[14px] font-semibold">更多信息 — {hotel.name}</SheetTitle>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid grid-cols-2 border-t border-border/40">
+            {fields.map((f, idx) => (
+              <div
+                key={f.label}
+                className={`flex items-start border-b border-border/40 ${idx % 2 === 0 ? "border-r border-border/40" : ""}`}
+              >
+                <div className="w-[110px] shrink-0 px-3 py-2.5 bg-muted/30 text-[12px] text-muted-foreground">
+                  {f.label}
+                </div>
+                <div className="flex-1 px-3 py-2.5 text-[13px] text-foreground break-all">
+                  {f.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
