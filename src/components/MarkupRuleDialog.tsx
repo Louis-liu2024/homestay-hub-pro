@@ -146,7 +146,7 @@ export function MarkupRuleDialog({ open, onOpenChange, initial, onSave }: Props)
         <div className="px-6 py-5 space-y-6">
           {/* 分区 1：基础信息 */}
           <Section title="基础信息" description="选择规则适用的渠道和价格区间">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <Field label="数据渠道" required>
                 <Select
                   value={rule.channel}
