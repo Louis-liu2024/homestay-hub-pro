@@ -124,10 +124,10 @@ export function DataPool() {
         </TabsList>
       </Tabs>
 
-      {/* Search bar */}
+      {/* Filter bar */}
       <Card className="border-border/60 bg-card">
         <CardContent className="py-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
@@ -137,18 +137,29 @@ export function DataPool() {
                 className="h-8 text-[13px] pl-7 w-80"
               />
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-[12px] text-muted-foreground">
-                共 <b className="text-foreground">{filtered.length}</b> 条
-              </span>
-              <Button size="sm" variant="outline" className="h-8" onClick={handleExport}>
-                <Download className="h-3.5 w-3.5 mr-1" />
-                导出
+            {search && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-[12px] text-muted-foreground ml-auto"
+                onClick={() => setSearch("")}
+              >
+                重置
               </Button>
-            </div>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Toolbar between filter & list */}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[12px] text-muted-foreground">
+          共 <b className="text-foreground">{filtered.length}</b> 条数据
+        </span>
+        <Button size="sm" variant="outline" className="h-8" onClick={handleExport}>
+          <Download className="h-3.5 w-3.5 mr-1" />导出
+        </Button>
+      </div>
 
       {/* Table */}
       <div className="border border-border/50 rounded-lg bg-card overflow-hidden">
