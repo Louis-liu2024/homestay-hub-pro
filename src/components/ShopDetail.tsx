@@ -45,8 +45,10 @@ function loadShops(): Shop[] {
 }
 
 import { MarkupRuleDialog, type MarkupRuleConfig } from "@/components/MarkupRuleDialog";
+import { CancelRuleDialog, type CancelRuleConfig } from "@/components/CancelRuleDialog";
 
 type MarkupRule = MarkupRuleConfig;
+type CancelRule = CancelRuleConfig;
 
 interface BlockRule {
   id: string;
@@ -54,13 +56,6 @@ interface BlockRule {
   channel: string;
   hotelTag: string;
   reason: string;
-  priority: number;
-}
-
-interface CancelRule {
-  id: string;
-  condition: string;
-  rule: string;
   priority: number;
 }
 
@@ -131,7 +126,23 @@ const DEFAULT_RULES: ShopRules = {
   ],
   blockRules: [],
   cancelRules: [
-    { id: "c1", condition: "艺龙 且 供应商取消类型:不可取消", rule: "不可取消", priority: 0 },
+    {
+      id: "c1",
+      channel: "艺龙",
+      priceMin: 0,
+      priceMax: 9999,
+      dateMode: "range",
+      dateRange: {},
+      monthlyDays: [],
+      weeklyDays: [],
+      specificDates: [],
+      holidayMode: "none",
+      brandKeyword: "",
+      roomKeyword: "",
+      cancelMode: "nonRefundable",
+      freeCancelTiers: [],
+      priority: 0,
+    },
   ],
   autoOrderRules: [],
   contactPhone: "",
@@ -204,6 +215,24 @@ export function ShopDetail() {
           markupFixed: r.markupFixed ?? 0,
           priority: r.priority ?? 0,
         }));
+        // 兼容旧数据：补齐取消规则缺失字段
+        merged.cancelRules = (merged.cancelRules || []).map((r: Partial<CancelRule> & { condition?: string; rule?: string }) => ({
+          id: r.id || `c${Date.now()}`,
+          channel: r.channel ?? "",
+          priceMin: r.priceMin ?? 0,
+          priceMax: r.priceMax ?? 9999,
+          dateMode: r.dateMode ?? "range",
+          dateRange: r.dateRange ?? {},
+          monthlyDays: r.monthlyDays ?? [],
+          weeklyDays: r.weeklyDays ?? [],
+          specificDates: r.specificDates ?? [],
+          holidayMode: r.holidayMode ?? "none",
+          brandKeyword: r.brandKeyword ?? "",
+          roomKeyword: r.roomKeyword ?? "",
+          cancelMode: r.cancelMode ?? "any",
+          freeCancelTiers: r.freeCancelTiers ?? [],
+          priority: r.priority ?? 0,
+        }));
         return merged;
       }
     } catch {
@@ -227,6 +256,18 @@ export function ShopDetail() {
       ? rules.markupRules.map((x) => (x.id === next.id ? next : x))
       : [...rules.markupRules, next];
     persistRules({ ...rules, markupRules: list });
+  };
+
+  // 取消规则弹框
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [editingCancel, setEditingCancel] = useState<CancelRule | null>(null);
+
+  const saveCancelRule = (next: CancelRule) => {
+    const exists = rules.cancelRules.some((x) => x.id === next.id);
+    const list = exists
+      ? rules.cancelRules.map((x) => (x.id === next.id ? next : x))
+      : [...rules.cancelRules, next];
+    persistRules({ ...rules, cancelRules: list });
   };
 
   if (!shop) {
@@ -674,72 +715,70 @@ export function ShopDetail() {
           {/* 取消政策 */}
           <RuleRow label="取消政策">
             <div className="border border-border/50 rounded-md overflow-x-auto">
-              <table className="w-full text-[12px] min-w-[600px]">
+              <table className="w-full text-[12px] min-w-[860px]">
                 <thead className="bg-muted/40">
                   <tr className="text-left text-muted-foreground">
-                    <th className="px-2 py-2 font-medium">限制条件</th>
+                    <th className="px-2 py-2 font-medium">数据渠道</th>
+                    <th className="px-2 py-2 font-medium">价格区间</th>
+                    <th className="px-2 py-2 font-medium">日期</th>
+                    <th className="px-2 py-2 font-medium">节假日</th>
+                    <th className="px-2 py-2 font-medium">关键词</th>
                     <th className="px-2 py-2 font-medium">取消规则</th>
                     <th className="px-2 py-2 font-medium">优先级</th>
-                    <th className="px-2 py-2 font-medium w-24">操作</th>
+                    <th className="px-2 py-2 font-medium w-28">操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rules.cancelRules.map((r, i) => (
-                    <tr key={r.id} className="border-t border-border/40">
+                  {rules.cancelRules.map((r) => (
+                    <tr key={r.id} className="border-t border-border/40 align-middle">
+                      <td className="px-2 py-2">{r.channel || "-"}</td>
+                      <td className="px-2 py-2">{r.priceMin} ~ {r.priceMax}</td>
+                      <td className="px-2 py-2">{summarizeDate(r)}</td>
                       <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.condition}
-                          onChange={(e) => {
-                            const next = [...rules.cancelRules];
-                            next[i] = { ...r, condition: e.target.value };
-                            persistRules({ ...rules, cancelRules: next });
-                          }}
-                        />
+                        {r.holidayMode === "include"
+                          ? "包含"
+                          : r.holidayMode === "exclude"
+                          ? "排除"
+                          : "不限"}
                       </td>
-                      <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.rule}
-                          onChange={(e) => {
-                            const next = [...rules.cancelRules];
-                            next[i] = { ...r, rule: e.target.value };
-                            persistRules({ ...rules, cancelRules: next });
-                          }}
-                        />
+                      <td className="px-2 py-2 max-w-[140px] truncate">
+                        {[r.brandKeyword, r.roomKeyword].filter(Boolean).join(" / ") || "-"}
                       </td>
+                      <td className="px-2 py-2">{summarizeCancel(r)}</td>
+                      <td className="px-2 py-2">{r.priority}</td>
                       <td className="px-2 py-2">
-                        <Input
-                          type="number"
-                          className="h-7 w-16 text-[12px]"
-                          value={r.priority}
-                          onChange={(e) => {
-                            const next = [...rules.cancelRules];
-                            next[i] = { ...r, priority: Number(e.target.value) || 0 };
-                            persistRules({ ...rules, cancelRules: next });
-                          }}
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-[11px] text-destructive hover:text-destructive"
-                          onClick={() =>
-                            persistRules({
-                              ...rules,
-                              cancelRules: rules.cancelRules.filter((x) => x.id !== r.id),
-                            })
-                          }
-                        >
-                          删除
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-[11px]"
+                            onClick={() => {
+                              setEditingCancel(r);
+                              setCancelOpen(true);
+                            }}
+                          >
+                            编辑
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-[11px] text-destructive hover:text-destructive"
+                            onClick={() =>
+                              persistRules({
+                                ...rules,
+                                cancelRules: rules.cancelRules.filter((x) => x.id !== r.id),
+                              })
+                            }
+                          >
+                            删除
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                   {rules.cancelRules.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-2 py-6 text-center text-muted-foreground">
+                      <td colSpan={8} className="px-2 py-6 text-center text-muted-foreground">
                         暂无规则
                       </td>
                     </tr>
@@ -752,15 +791,10 @@ export function ShopDetail() {
                 size="sm"
                 variant="outline"
                 className="h-7 text-[12px]"
-                onClick={() =>
-                  persistRules({
-                    ...rules,
-                    cancelRules: [
-                      ...rules.cancelRules,
-                      { id: `c${Date.now()}`, condition: "", rule: "不可取消", priority: 0 },
-                    ],
-                  })
-                }
+                onClick={() => {
+                  setEditingCancel(null);
+                  setCancelOpen(true);
+                }}
               >
                 添加规则
               </Button>
@@ -1032,11 +1066,27 @@ export function ShopDetail() {
         initial={editingMarkup}
         onSave={saveMarkupRule}
       />
+
+      {/* 取消规则弹框 */}
+      <CancelRuleDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        initial={editingCancel}
+        onSave={saveCancelRule}
+      />
     </div>
   );
 }
 
-function summarizeDate(r: MarkupRule): string {
+interface DateSummarizable {
+  dateMode: "range" | "monthly" | "weekly" | "specific";
+  dateRange?: { from?: string; to?: string };
+  monthlyDays: number[];
+  weeklyDays: number[];
+  specificDates: string[];
+}
+
+function summarizeDate(r: DateSummarizable): string {
   switch (r.dateMode) {
     case "range":
       if (r.dateRange?.from || r.dateRange?.to) {
@@ -1056,6 +1106,16 @@ function summarizeDate(r: MarkupRule): string {
     default:
       return "-";
   }
+}
+
+function summarizeCancel(r: CancelRule): string {
+  if (r.cancelMode === "any") return "任意取消";
+  if (r.cancelMode === "nonRefundable") return "不可取消";
+  if (!r.freeCancelTiers.length) return "限时免费取消";
+  const parts = r.freeCancelTiers.map(
+    (t) => `提前${t.beforeHours}h / ${t.feePercent}%`
+  );
+  return `限时：${parts.join(" → ")}`;
 }
 
 function SecretRow({
