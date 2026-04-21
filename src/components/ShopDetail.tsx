@@ -45,8 +45,10 @@ function loadShops(): Shop[] {
 }
 
 import { MarkupRuleDialog, type MarkupRuleConfig } from "@/components/MarkupRuleDialog";
+import { CancelRuleDialog, type CancelRuleConfig } from "@/components/CancelRuleDialog";
 
 type MarkupRule = MarkupRuleConfig;
+type CancelRule = CancelRuleConfig;
 
 interface BlockRule {
   id: string;
@@ -54,13 +56,6 @@ interface BlockRule {
   channel: string;
   hotelTag: string;
   reason: string;
-  priority: number;
-}
-
-interface CancelRule {
-  id: string;
-  condition: string;
-  rule: string;
   priority: number;
 }
 
