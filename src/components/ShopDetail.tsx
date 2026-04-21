@@ -1066,11 +1066,27 @@ export function ShopDetail() {
         initial={editingMarkup}
         onSave={saveMarkupRule}
       />
+
+      {/* 取消规则弹框 */}
+      <CancelRuleDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        initial={editingCancel}
+        onSave={saveCancelRule}
+      />
     </div>
   );
 }
 
-function summarizeDate(r: MarkupRule): string {
+interface DateSummarizable {
+  dateMode: "range" | "monthly" | "weekly" | "specific";
+  dateRange?: { from?: string; to?: string };
+  monthlyDays: number[];
+  weeklyDays: number[];
+  specificDates: string[];
+}
+
+function summarizeDate(r: DateSummarizable): string {
   switch (r.dateMode) {
     case "range":
       if (r.dateRange?.from || r.dateRange?.to) {
@@ -1090,6 +1106,16 @@ function summarizeDate(r: MarkupRule): string {
     default:
       return "-";
   }
+}
+
+function summarizeCancel(r: CancelRule): string {
+  if (r.cancelMode === "any") return "任意取消";
+  if (r.cancelMode === "nonRefundable") return "不可取消";
+  if (!r.freeCancelTiers.length) return "限时免费取消";
+  const parts = r.freeCancelTiers.map(
+    (t) => `提前${t.beforeHours}h / ${t.feePercent}%`
+  );
+  return `限时：${parts.join(" → ")}`;
 }
 
 function SecretRow({
