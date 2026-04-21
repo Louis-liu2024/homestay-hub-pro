@@ -433,7 +433,7 @@ export function MarkupRuleDialog({ open, onOpenChange, initial, onSave }: Props)
 
           {/* 分区 4：加价方式 */}
           <Section title="加价方式" description="设置加价公式与规则优先级">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <Field label="加价公式" required>
                 <div className="flex items-center gap-2">
                   <Input
