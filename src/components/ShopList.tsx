@@ -135,16 +135,10 @@ export function ShopList() {
           <Store className="h-3.5 w-3.5 text-muted-foreground" />共{" "}
           <b className="text-foreground">{filtered.length}</b> 个店铺
         </span>
-        <Button asChild size="sm" className="h-8">
-          <Link to="/shops/new">
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            新建店铺
-          </Link>
-        </Button>
       </div>
 
       {/* Card grid */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((shop) => {
           const initials = shop.name.slice(0, 2);
           const grad = PALETTE[hashIdx(shop.id, PALETTE.length)];
@@ -152,86 +146,92 @@ export function ShopList() {
           return (
             <Card
               key={shop.id}
-              className="border-border/60 bg-card transition-all hover:border-primary/40 hover:shadow-md h-full"
+              className="border-border/60 bg-card transition-all hover:border-primary/40 hover:shadow-lg h-full overflow-hidden"
             >
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="p-0">
                 <Link
                   to="/shops/$shopId"
                   params={{ shopId: shop.id }}
                   className="group block"
                 >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`h-12 w-12 rounded-lg bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-[15px] shadow-sm shrink-0`}
-                    >
+                  <div
+                    className={`relative h-28 bg-gradient-to-br ${grad} flex items-center justify-center overflow-hidden`}
+                  >
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_30%_20%,_white_0,_transparent_50%)]" />
+                    <div className="relative h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-1 ring-white/30">
                       {initials}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold text-[14px] truncate group-hover:text-primary transition-colors">
-                        {shop.name}
+                  </div>
+                  <div className="px-5 pt-4 pb-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-[15px] truncate group-hover:text-primary transition-colors">
+                          {shop.name}
+                        </div>
+                        <div className="text-[12px] text-muted-foreground mt-0.5 truncate">
+                          {shop.region} · {shop.city}
+                        </div>
                       </div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                        {shop.region} · {shop.city}
-                      </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors shrink-0 mt-1" />
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground/60 group-hover:text-primary transition-colors shrink-0" />
                   </div>
                 </Link>
 
-                <div className="flex flex-wrap gap-1">
-                  {shop.channels.slice(0, 4).map((ch) => (
-                    <Badge
-                      key={ch}
-                      variant="secondary"
-                      className="text-[10px] h-5 bg-primary/10 text-primary border-0"
-                    >
-                      {ch}
-                    </Badge>
-                  ))}
-                  {shop.channels.length > 4 && (
-                    <Badge variant="outline" className="text-[10px] h-5">
-                      +{shop.channels.length - 4}
-                    </Badge>
-                  )}
-                </div>
+                <div className="px-5 pb-4 space-y-3">
+                  <div className="flex flex-wrap gap-1">
+                    {shop.channels.slice(0, 5).map((ch) => (
+                      <Badge
+                        key={ch}
+                        variant="secondary"
+                        className="text-[10px] h-5 bg-primary/10 text-primary border-0"
+                      >
+                        {ch}
+                      </Badge>
+                    ))}
+                    {shop.channels.length > 5 && (
+                      <Badge variant="outline" className="text-[10px] h-5">
+                        +{shop.channels.length - 5}
+                      </Badge>
+                    )}
+                  </div>
 
-                <div className="pt-2 border-t border-border/40 flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">API 配置</span>
-                  <span className="font-semibold text-foreground text-[12px]">
-                    {shop.apiConfigs.length}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between rounded-md bg-muted/40 px-2.5 py-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        published ? "bg-success" : "bg-muted-foreground/40"
-                      }`}
-                    />
-                    <span className="text-[12px] text-foreground">
-                      {published ? "已发布" : "未发布"}
+                  <div className="flex items-center justify-between text-[12px] pt-2 border-t border-border/40">
+                    <span className="text-muted-foreground">API 配置</span>
+                    <span className="font-semibold text-foreground">
+                      {shop.apiConfigs.length}
                     </span>
                   </div>
-                  <Switch
-                    checked={published}
-                    onCheckedChange={(v) => togglePublished(shop.id, v)}
-                    aria-label="切换店铺发布状态"
-                  />
+
+                  <div className="flex items-center justify-between rounded-md bg-muted/40 px-3 py-2">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${
+                          published ? "bg-success" : "bg-muted-foreground/40"
+                        }`}
+                      />
+                      <span className="text-[12px] text-foreground">
+                        {published ? "已发布" : "未发布"}
+                      </span>
+                    </div>
+                    <Switch
+                      checked={published}
+                      onCheckedChange={(v) => togglePublished(shop.id, v)}
+                      aria-label="切换店铺发布状态"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           );
         })}
 
-        {/* 新建占位卡片 */}
         <Link to="/shops/new" className="group">
-          <Card className="border-dashed border-border/60 bg-card/50 transition-all hover:border-primary hover:bg-primary/5 cursor-pointer h-full min-h-[220px]">
+          <Card className="border-dashed border-border/60 bg-card/50 transition-all hover:border-primary hover:bg-primary/5 cursor-pointer h-full min-h-[300px]">
             <CardContent className="p-4 h-full flex flex-col items-center justify-center text-muted-foreground group-hover:text-primary">
-              <div className="h-10 w-10 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center mb-2 transition-colors">
-                <Plus className="h-5 w-5" />
+              <div className="h-12 w-12 rounded-full bg-muted group-hover:bg-primary/10 flex items-center justify-center mb-2 transition-colors">
+                <Plus className="h-6 w-6" />
               </div>
-              <span className="text-[12px] font-medium">新建店铺</span>
+              <span className="text-[13px] font-medium">新建店铺</span>
             </CardContent>
           </Card>
         </Link>
