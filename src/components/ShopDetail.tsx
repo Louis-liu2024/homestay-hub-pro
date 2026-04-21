@@ -490,147 +490,77 @@ export function ShopDetail() {
               <table className="w-full text-[12px] min-w-[860px]">
                 <thead className="bg-muted/40">
                   <tr className="text-left text-muted-foreground">
-                    <th className="px-2 py-2 font-medium">供应商</th>
-                    <th className="px-2 py-2 font-medium">售卖渠道</th>
-                    <th className="px-2 py-2 font-medium">酒店标签</th>
+                    <th className="px-2 py-2 font-medium">数据渠道</th>
                     <th className="px-2 py-2 font-medium">价格区间</th>
-                    <th className="px-2 py-2 font-medium">其他条件</th>
+                    <th className="px-2 py-2 font-medium">早餐</th>
+                    <th className="px-2 py-2 font-medium">日期</th>
+                    <th className="px-2 py-2 font-medium">节假日</th>
+                    <th className="px-2 py-2 font-medium">关键词</th>
                     <th className="px-2 py-2 font-medium">加价</th>
                     <th className="px-2 py-2 font-medium">优先级</th>
-                    <th className="px-2 py-2 font-medium w-24">操作</th>
+                    <th className="px-2 py-2 font-medium w-28">操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rules.markupRules.map((r, i) => (
-                    <tr key={r.id} className="border-t border-border/40">
+                  {rules.markupRules.map((r) => (
+                    <tr key={r.id} className="border-t border-border/40 align-middle">
+                      <td className="px-2 py-2">{r.channel || "-"}</td>
+                      <td className="px-2 py-2">{r.priceMin} ~ {r.priceMax}</td>
                       <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.supplier}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, supplier: e.target.value };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
+                        {r.breakfastMode === "any"
+                          ? "不限"
+                          : r.breakfastCounts.length
+                          ? r.breakfastCounts.join("/")
+                          : "-"}
+                      </td>
+                      <td className="px-2 py-2">{summarizeDate(r)}</td>
+                      <td className="px-2 py-2">
+                        {r.holidayMode === "include"
+                          ? "包含"
+                          : r.holidayMode === "exclude"
+                          ? "排除"
+                          : "不限"}
+                      </td>
+                      <td className="px-2 py-2 max-w-[140px] truncate">
+                        {[r.brandKeyword, r.roomKeyword].filter(Boolean).join(" / ") || "-"}
                       </td>
                       <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.channel}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, channel: e.target.value };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
+                        {r.markupPercent}% {r.markupFixed >= 0 ? "+" : ""}{r.markupFixed}
                       </td>
+                      <td className="px-2 py-2">{r.priority}</td>
                       <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.hotelTag}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, hotelTag: e.target.value };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number"
-                            className="h-7 w-16 text-[12px]"
-                            value={r.priceMin}
-                            onChange={(e) => {
-                              const next = [...rules.markupRules];
-                              next[i] = { ...r, priceMin: Number(e.target.value) || 0 };
-                              persistRules({ ...rules, markupRules: next });
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-[11px]"
+                            onClick={() => {
+                              setEditingMarkup(r);
+                              setMarkupOpen(true);
                             }}
-                          />
-                          <span className="text-muted-foreground">-</span>
-                          <Input
-                            type="number"
-                            className="h-7 w-20 text-[12px]"
-                            value={r.priceMax}
-                            onChange={(e) => {
-                              const next = [...rules.markupRules];
-                              next[i] = { ...r, priceMax: Number(e.target.value) || 0 };
-                              persistRules({ ...rules, markupRules: next });
+                          >
+                            编辑
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-[11px] text-destructive hover:text-destructive"
+                            onClick={() => {
+                              persistRules({
+                                ...rules,
+                                markupRules: rules.markupRules.filter((x) => x.id !== r.id),
+                              });
                             }}
-                          />
+                          >
+                            删除
+                          </Button>
                         </div>
-                      </td>
-                      <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          placeholder="-"
-                          value={r.otherCondition ?? ""}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, otherCondition: e.target.value };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number"
-                            className="h-7 w-16 text-[12px]"
-                            value={r.markupPercent}
-                            onChange={(e) => {
-                              const next = [...rules.markupRules];
-                              next[i] = { ...r, markupPercent: Number(e.target.value) || 0 };
-                              persistRules({ ...rules, markupRules: next });
-                            }}
-                          />
-                          <span className="text-muted-foreground">%</span>
-                          <span className="text-muted-foreground">+</span>
-                          <Input
-                            type="number"
-                            className="h-7 w-16 text-[12px]"
-                            value={r.markupFixed}
-                            onChange={(e) => {
-                              const next = [...rules.markupRules];
-                              next[i] = { ...r, markupFixed: Number(e.target.value) || 0 };
-                              persistRules({ ...rules, markupRules: next });
-                            }}
-                          />
-                        </div>
-                      </td>
-                      <td className="px-2 py-2">
-                        <Input
-                          type="number"
-                          className="h-7 w-16 text-[12px]"
-                          value={r.priority}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, priority: Number(e.target.value) || 0 };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-[11px] text-destructive hover:text-destructive"
-                          onClick={() => {
-                            persistRules({
-                              ...rules,
-                              markupRules: rules.markupRules.filter((x) => x.id !== r.id),
-                            });
-                          }}
-                        >
-                          删除
-                        </Button>
                       </td>
                     </tr>
                   ))}
                   {rules.markupRules.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-2 py-6 text-center text-muted-foreground">
+                      <td colSpan={9} className="px-2 py-6 text-center text-muted-foreground">
                         暂无规则
                       </td>
                     </tr>
@@ -643,25 +573,10 @@ export function ShopDetail() {
                 size="sm"
                 variant="outline"
                 className="h-7 text-[12px]"
-                onClick={() =>
-                  persistRules({
-                    ...rules,
-                    markupRules: [
-                      ...rules.markupRules,
-                      {
-                        id: `m${Date.now()}`,
-                        supplier: "",
-                        channel: "",
-                        hotelTag: "",
-                        priceMin: 0,
-                        priceMax: 9999,
-                        markupPercent: 0,
-                        markupFixed: 0,
-                        priority: 0,
-                      },
-                    ],
-                  })
-                }
+                onClick={() => {
+                  setEditingMarkup(null);
+                  setMarkupOpen(true);
+                }}
               >
                 添加规则
               </Button>
