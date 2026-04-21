@@ -1000,8 +1000,38 @@ export function ShopDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 加价规则弹框 */}
+      <MarkupRuleDialog
+        open={markupOpen}
+        onOpenChange={setMarkupOpen}
+        initial={editingMarkup}
+        onSave={saveMarkupRule}
+      />
     </div>
   );
+}
+
+function summarizeDate(r: MarkupRule): string {
+  switch (r.dateMode) {
+    case "range":
+      if (r.dateRange?.from || r.dateRange?.to) {
+        return `${r.dateRange?.from || "…"} ~ ${r.dateRange?.to || "…"}`;
+      }
+      return "时间范围";
+    case "monthly":
+      return r.monthlyDays.length ? `每月 ${r.monthlyDays.join(",")}` : "每月";
+    case "weekly": {
+      const W = ["日", "一", "二", "三", "四", "五", "六"];
+      return r.weeklyDays.length
+        ? `每周 ${r.weeklyDays.map((d) => W[d]).join(",")}`
+        : "每周";
+    }
+    case "specific":
+      return r.specificDates.length ? `指定 ${r.specificDates.length} 天` : "指定日期";
+    default:
+      return "-";
+  }
 }
 
 function SecretRow({
