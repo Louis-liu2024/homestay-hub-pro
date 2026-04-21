@@ -193,6 +193,18 @@ export function ShopDetail() {
     localStorage.setItem(`${RULES_KEY}.${shopId}`, JSON.stringify(next));
   };
 
+  // 加价规则弹框
+  const [markupOpen, setMarkupOpen] = useState(false);
+  const [editingMarkup, setEditingMarkup] = useState<MarkupRule | null>(null);
+
+  const saveMarkupRule = (next: MarkupRule) => {
+    const exists = rules.markupRules.some((x) => x.id === next.id);
+    const list = exists
+      ? rules.markupRules.map((x) => (x.id === next.id ? next : x))
+      : [...rules.markupRules, next];
+    persistRules({ ...rules, markupRules: list });
+  };
+
   if (!shop) {
     return (
       <div className="p-8">
