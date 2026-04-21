@@ -44,18 +44,9 @@ function loadShops(): Shop[] {
   return mockShops;
 }
 
-interface MarkupRule {
-  id: string;
-  supplier: string;
-  channel: string;
-  hotelTag: string;
-  priceMin: number;
-  priceMax: number;
-  otherCondition?: string;
-  markupPercent: number;
-  markupFixed: number;
-  priority: number;
-}
+import { MarkupRuleDialog, type MarkupRuleConfig } from "@/components/MarkupRuleDialog";
+
+type MarkupRule = MarkupRuleConfig;
 
 interface BlockRule {
   id: string;
@@ -99,8 +90,44 @@ interface ShopRules {
 const DEFAULT_RULES: ShopRules = {
   advanceBookingHours: 0,
   markupRules: [
-    { id: "m1", supplier: "艺龙", channel: "飞猪", hotelTag: "扶摇专用", priceMin: 0, priceMax: 55, markupPercent: 0, markupFixed: -7, priority: 0 },
-    { id: "m2", supplier: "艺龙", channel: "飞猪", hotelTag: "扶摇专用", priceMin: 55, priceMax: 9999, markupPercent: 20, markupFixed: 0, priority: 0 },
+    {
+      id: "m1",
+      channel: "飞猪",
+      priceMin: 0,
+      priceMax: 55,
+      breakfastMode: "any",
+      breakfastCounts: [],
+      dateMode: "range",
+      dateRange: {},
+      monthlyDays: [],
+      weeklyDays: [],
+      specificDates: [],
+      holidayMode: "none",
+      brandKeyword: "",
+      roomKeyword: "扶摇专用",
+      markupPercent: 0,
+      markupFixed: -7,
+      priority: 0,
+    },
+    {
+      id: "m2",
+      channel: "飞猪",
+      priceMin: 55,
+      priceMax: 9999,
+      breakfastMode: "any",
+      breakfastCounts: [],
+      dateMode: "range",
+      dateRange: {},
+      monthlyDays: [],
+      weeklyDays: [],
+      specificDates: [],
+      holidayMode: "none",
+      brandKeyword: "",
+      roomKeyword: "扶摇专用",
+      markupPercent: 20,
+      markupFixed: 0,
+      priority: 0,
+    },
   ],
   blockRules: [],
   cancelRules: [
@@ -164,6 +191,18 @@ export function ShopDetail() {
   const persistRules = (next: ShopRules) => {
     setRules(next);
     localStorage.setItem(`${RULES_KEY}.${shopId}`, JSON.stringify(next));
+  };
+
+  // 加价规则弹框
+  const [markupOpen, setMarkupOpen] = useState(false);
+  const [editingMarkup, setEditingMarkup] = useState<MarkupRule | null>(null);
+
+  const saveMarkupRule = (next: MarkupRule) => {
+    const exists = rules.markupRules.some((x) => x.id === next.id);
+    const list = exists
+      ? rules.markupRules.map((x) => (x.id === next.id ? next : x))
+      : [...rules.markupRules, next];
+    persistRules({ ...rules, markupRules: list });
   };
 
   if (!shop) {
@@ -463,147 +502,77 @@ export function ShopDetail() {
               <table className="w-full text-[12px] min-w-[860px]">
                 <thead className="bg-muted/40">
                   <tr className="text-left text-muted-foreground">
-                    <th className="px-2 py-2 font-medium">供应商</th>
-                    <th className="px-2 py-2 font-medium">售卖渠道</th>
-                    <th className="px-2 py-2 font-medium">酒店标签</th>
+                    <th className="px-2 py-2 font-medium">数据渠道</th>
                     <th className="px-2 py-2 font-medium">价格区间</th>
-                    <th className="px-2 py-2 font-medium">其他条件</th>
+                    <th className="px-2 py-2 font-medium">早餐</th>
+                    <th className="px-2 py-2 font-medium">日期</th>
+                    <th className="px-2 py-2 font-medium">节假日</th>
+                    <th className="px-2 py-2 font-medium">关键词</th>
                     <th className="px-2 py-2 font-medium">加价</th>
                     <th className="px-2 py-2 font-medium">优先级</th>
-                    <th className="px-2 py-2 font-medium w-24">操作</th>
+                    <th className="px-2 py-2 font-medium w-28">操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rules.markupRules.map((r, i) => (
-                    <tr key={r.id} className="border-t border-border/40">
+                  {rules.markupRules.map((r) => (
+                    <tr key={r.id} className="border-t border-border/40 align-middle">
+                      <td className="px-2 py-2">{r.channel || "-"}</td>
+                      <td className="px-2 py-2">{r.priceMin} ~ {r.priceMax}</td>
                       <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.supplier}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, supplier: e.target.value };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
+                        {r.breakfastMode === "any"
+                          ? "不限"
+                          : r.breakfastCounts.length
+                          ? r.breakfastCounts.join("/")
+                          : "-"}
+                      </td>
+                      <td className="px-2 py-2">{summarizeDate(r)}</td>
+                      <td className="px-2 py-2">
+                        {r.holidayMode === "include"
+                          ? "包含"
+                          : r.holidayMode === "exclude"
+                          ? "排除"
+                          : "不限"}
+                      </td>
+                      <td className="px-2 py-2 max-w-[140px] truncate">
+                        {[r.brandKeyword, r.roomKeyword].filter(Boolean).join(" / ") || "-"}
                       </td>
                       <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.channel}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, channel: e.target.value };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
+                        {r.markupPercent}% {r.markupFixed >= 0 ? "+" : ""}{r.markupFixed}
                       </td>
+                      <td className="px-2 py-2">{r.priority}</td>
                       <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.hotelTag}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, hotelTag: e.target.value };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number"
-                            className="h-7 w-16 text-[12px]"
-                            value={r.priceMin}
-                            onChange={(e) => {
-                              const next = [...rules.markupRules];
-                              next[i] = { ...r, priceMin: Number(e.target.value) || 0 };
-                              persistRules({ ...rules, markupRules: next });
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-[11px]"
+                            onClick={() => {
+                              setEditingMarkup(r);
+                              setMarkupOpen(true);
                             }}
-                          />
-                          <span className="text-muted-foreground">-</span>
-                          <Input
-                            type="number"
-                            className="h-7 w-20 text-[12px]"
-                            value={r.priceMax}
-                            onChange={(e) => {
-                              const next = [...rules.markupRules];
-                              next[i] = { ...r, priceMax: Number(e.target.value) || 0 };
-                              persistRules({ ...rules, markupRules: next });
+                          >
+                            编辑
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-[11px] text-destructive hover:text-destructive"
+                            onClick={() => {
+                              persistRules({
+                                ...rules,
+                                markupRules: rules.markupRules.filter((x) => x.id !== r.id),
+                              });
                             }}
-                          />
+                          >
+                            删除
+                          </Button>
                         </div>
-                      </td>
-                      <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          placeholder="-"
-                          value={r.otherCondition ?? ""}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, otherCondition: e.target.value };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <div className="flex items-center gap-1">
-                          <Input
-                            type="number"
-                            className="h-7 w-16 text-[12px]"
-                            value={r.markupPercent}
-                            onChange={(e) => {
-                              const next = [...rules.markupRules];
-                              next[i] = { ...r, markupPercent: Number(e.target.value) || 0 };
-                              persistRules({ ...rules, markupRules: next });
-                            }}
-                          />
-                          <span className="text-muted-foreground">%</span>
-                          <span className="text-muted-foreground">+</span>
-                          <Input
-                            type="number"
-                            className="h-7 w-16 text-[12px]"
-                            value={r.markupFixed}
-                            onChange={(e) => {
-                              const next = [...rules.markupRules];
-                              next[i] = { ...r, markupFixed: Number(e.target.value) || 0 };
-                              persistRules({ ...rules, markupRules: next });
-                            }}
-                          />
-                        </div>
-                      </td>
-                      <td className="px-2 py-2">
-                        <Input
-                          type="number"
-                          className="h-7 w-16 text-[12px]"
-                          value={r.priority}
-                          onChange={(e) => {
-                            const next = [...rules.markupRules];
-                            next[i] = { ...r, priority: Number(e.target.value) || 0 };
-                            persistRules({ ...rules, markupRules: next });
-                          }}
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-[11px] text-destructive hover:text-destructive"
-                          onClick={() => {
-                            persistRules({
-                              ...rules,
-                              markupRules: rules.markupRules.filter((x) => x.id !== r.id),
-                            });
-                          }}
-                        >
-                          删除
-                        </Button>
                       </td>
                     </tr>
                   ))}
                   {rules.markupRules.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-2 py-6 text-center text-muted-foreground">
+                      <td colSpan={9} className="px-2 py-6 text-center text-muted-foreground">
                         暂无规则
                       </td>
                     </tr>
@@ -616,25 +585,10 @@ export function ShopDetail() {
                 size="sm"
                 variant="outline"
                 className="h-7 text-[12px]"
-                onClick={() =>
-                  persistRules({
-                    ...rules,
-                    markupRules: [
-                      ...rules.markupRules,
-                      {
-                        id: `m${Date.now()}`,
-                        supplier: "",
-                        channel: "",
-                        hotelTag: "",
-                        priceMin: 0,
-                        priceMax: 9999,
-                        markupPercent: 0,
-                        markupFixed: 0,
-                        priority: 0,
-                      },
-                    ],
-                  })
-                }
+                onClick={() => {
+                  setEditingMarkup(null);
+                  setMarkupOpen(true);
+                }}
               >
                 添加规则
               </Button>
@@ -1046,8 +1000,38 @@ export function ShopDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 加价规则弹框 */}
+      <MarkupRuleDialog
+        open={markupOpen}
+        onOpenChange={setMarkupOpen}
+        initial={editingMarkup}
+        onSave={saveMarkupRule}
+      />
     </div>
   );
+}
+
+function summarizeDate(r: MarkupRule): string {
+  switch (r.dateMode) {
+    case "range":
+      if (r.dateRange?.from || r.dateRange?.to) {
+        return `${r.dateRange?.from || "…"} ~ ${r.dateRange?.to || "…"}`;
+      }
+      return "时间范围";
+    case "monthly":
+      return r.monthlyDays.length ? `每月 ${r.monthlyDays.join(",")}` : "每月";
+    case "weekly": {
+      const W = ["日", "一", "二", "三", "四", "五", "六"];
+      return r.weeklyDays.length
+        ? `每周 ${r.weeklyDays.map((d) => W[d]).join(",")}`
+        : "每周";
+    }
+    case "specific":
+      return r.specificDates.length ? `指定 ${r.specificDates.length} 天` : "指定日期";
+    default:
+      return "-";
+  }
 }
 
 function SecretRow({
