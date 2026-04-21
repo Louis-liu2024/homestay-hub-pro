@@ -258,6 +258,18 @@ export function ShopDetail() {
     persistRules({ ...rules, markupRules: list });
   };
 
+  // 取消规则弹框
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [editingCancel, setEditingCancel] = useState<CancelRule | null>(null);
+
+  const saveCancelRule = (next: CancelRule) => {
+    const exists = rules.cancelRules.some((x) => x.id === next.id);
+    const list = exists
+      ? rules.cancelRules.map((x) => (x.id === next.id ? next : x))
+      : [...rules.cancelRules, next];
+    persistRules({ ...rules, cancelRules: list });
+  };
+
   if (!shop) {
     return (
       <div className="p-8">
