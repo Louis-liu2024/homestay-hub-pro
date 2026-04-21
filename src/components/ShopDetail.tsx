@@ -715,72 +715,70 @@ export function ShopDetail() {
           {/* 取消政策 */}
           <RuleRow label="取消政策">
             <div className="border border-border/50 rounded-md overflow-x-auto">
-              <table className="w-full text-[12px] min-w-[600px]">
+              <table className="w-full text-[12px] min-w-[860px]">
                 <thead className="bg-muted/40">
                   <tr className="text-left text-muted-foreground">
-                    <th className="px-2 py-2 font-medium">限制条件</th>
+                    <th className="px-2 py-2 font-medium">数据渠道</th>
+                    <th className="px-2 py-2 font-medium">价格区间</th>
+                    <th className="px-2 py-2 font-medium">日期</th>
+                    <th className="px-2 py-2 font-medium">节假日</th>
+                    <th className="px-2 py-2 font-medium">关键词</th>
                     <th className="px-2 py-2 font-medium">取消规则</th>
                     <th className="px-2 py-2 font-medium">优先级</th>
-                    <th className="px-2 py-2 font-medium w-24">操作</th>
+                    <th className="px-2 py-2 font-medium w-28">操作</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rules.cancelRules.map((r, i) => (
-                    <tr key={r.id} className="border-t border-border/40">
+                  {rules.cancelRules.map((r) => (
+                    <tr key={r.id} className="border-t border-border/40 align-middle">
+                      <td className="px-2 py-2">{r.channel || "-"}</td>
+                      <td className="px-2 py-2">{r.priceMin} ~ {r.priceMax}</td>
+                      <td className="px-2 py-2">{summarizeDate(r)}</td>
                       <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.condition}
-                          onChange={(e) => {
-                            const next = [...rules.cancelRules];
-                            next[i] = { ...r, condition: e.target.value };
-                            persistRules({ ...rules, cancelRules: next });
-                          }}
-                        />
+                        {r.holidayMode === "include"
+                          ? "包含"
+                          : r.holidayMode === "exclude"
+                          ? "排除"
+                          : "不限"}
                       </td>
-                      <td className="px-2 py-2">
-                        <Input
-                          className="h-7 text-[12px]"
-                          value={r.rule}
-                          onChange={(e) => {
-                            const next = [...rules.cancelRules];
-                            next[i] = { ...r, rule: e.target.value };
-                            persistRules({ ...rules, cancelRules: next });
-                          }}
-                        />
+                      <td className="px-2 py-2 max-w-[140px] truncate">
+                        {[r.brandKeyword, r.roomKeyword].filter(Boolean).join(" / ") || "-"}
                       </td>
+                      <td className="px-2 py-2">{summarizeCancel(r)}</td>
+                      <td className="px-2 py-2">{r.priority}</td>
                       <td className="px-2 py-2">
-                        <Input
-                          type="number"
-                          className="h-7 w-16 text-[12px]"
-                          value={r.priority}
-                          onChange={(e) => {
-                            const next = [...rules.cancelRules];
-                            next[i] = { ...r, priority: Number(e.target.value) || 0 };
-                            persistRules({ ...rules, cancelRules: next });
-                          }}
-                        />
-                      </td>
-                      <td className="px-2 py-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-[11px] text-destructive hover:text-destructive"
-                          onClick={() =>
-                            persistRules({
-                              ...rules,
-                              cancelRules: rules.cancelRules.filter((x) => x.id !== r.id),
-                            })
-                          }
-                        >
-                          删除
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-[11px]"
+                            onClick={() => {
+                              setEditingCancel(r);
+                              setCancelOpen(true);
+                            }}
+                          >
+                            编辑
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-[11px] text-destructive hover:text-destructive"
+                            onClick={() =>
+                              persistRules({
+                                ...rules,
+                                cancelRules: rules.cancelRules.filter((x) => x.id !== r.id),
+                              })
+                            }
+                          >
+                            删除
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
                   {rules.cancelRules.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-2 py-6 text-center text-muted-foreground">
+                      <td colSpan={8} className="px-2 py-6 text-center text-muted-foreground">
                         暂无规则
                       </td>
                     </tr>
@@ -793,15 +791,10 @@ export function ShopDetail() {
                 size="sm"
                 variant="outline"
                 className="h-7 text-[12px]"
-                onClick={() =>
-                  persistRules({
-                    ...rules,
-                    cancelRules: [
-                      ...rules.cancelRules,
-                      { id: `c${Date.now()}`, condition: "", rule: "不可取消", priority: 0 },
-                    ],
-                  })
-                }
+                onClick={() => {
+                  setEditingCancel(null);
+                  setCancelOpen(true);
+                }}
               >
                 添加规则
               </Button>
