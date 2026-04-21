@@ -250,7 +250,7 @@ export function MarkupRuleDialog({ open, onOpenChange, initial, onSave }: Props)
               )}
             </Field>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <Field label="品牌关键词">
                 <Input
                   className="h-10 text-sm"
