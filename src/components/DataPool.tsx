@@ -2,13 +2,16 @@ import { useState, useMemo, useEffect } from "react";
 import { mockHotels } from "@/lib/mock-data";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@tanstack/react-router";
-import { Search, Download, Eye, Star } from "lucide-react";
+import { Search, Download, Upload, Tag as TagIcon } from "lucide-react";
 import { toast } from "sonner";
 import { DataTablePagination } from "@/components/DataTablePagination";
+import { PriceQueryDialog } from "@/components/PriceQueryDialog";
+import { PublishDialog } from "@/components/PublishDialog";
 import type { Channel, Hotel } from "@/lib/types";
 
 const CHANNELS: (Channel | "全部")[] = [
@@ -27,11 +30,15 @@ export function DataPool() {
   const [hotels] = useState<Hotel[]>(mockHotels);
   const [channelTab, setChannelTab] = useState<string>("全部");
   const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [priceHotel, setPriceHotel] = useState<Hotel | null>(null);
+  const [publishHotel, setPublishHotel] = useState<Hotel | null>(null);
 
   useEffect(() => {
     setPage(1);
+    setSelected(new Set());
   }, [search, channelTab]);
 
   const filtered = useMemo(() => {
@@ -61,6 +68,20 @@ export function DataPool() {
     for (const h of hotels) counts[h.channel] = (counts[h.channel] ?? 0) + 1;
     return counts;
   }, [hotels]);
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selected.size === paged.length) setSelected(new Set());
+    else setSelected(new Set(paged.map((h) => h.id)));
+  };
 
   const handleExport = () => {
     const headers = ["酒店ID", "酒店名称", "渠道", "评分", "城市", "品牌", "房间量", "标签", "订单数", "均价"];
@@ -103,7 +124,7 @@ export function DataPool() {
         </TabsList>
       </Tabs>
 
-      {/* Search + Export */}
+      {/* Search bar */}
       <Card className="border-border/60 bg-card">
         <CardContent className="py-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -129,92 +150,116 @@ export function DataPool() {
         </CardContent>
       </Card>
 
-      {/* Card grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {paged.map((hotel) => (
-          <Card
-            key={hotel.id}
-            className="border-border/60 bg-card hover:border-primary/40 hover:shadow-md transition-all overflow-hidden group"
-          >
-            <div className="aspect-[16/9] bg-gradient-to-br from-muted to-muted/50 relative overflow-hidden">
-              {hotel.images?.[0] ? (
-                <img
-                  src={hotel.images[0]}
-                  alt={hotel.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-muted-foreground/40">
-                  {hotel.name.slice(0, 2)}
-                </div>
-              )}
-              <Badge
-                variant="outline"
-                className="absolute top-2 left-2 bg-background/90 backdrop-blur text-[11px] h-5 border-border/60"
-              >
-                {hotel.channel}
-              </Badge>
-              <Badge
-                variant="outline"
-                className="absolute top-2 right-2 bg-background/90 backdrop-blur text-[11px] h-5 border-warning/40 text-warning"
-              >
-                <Star className="h-2.5 w-2.5 mr-0.5 fill-current" />
-                {hotel.rating}
-              </Badge>
-            </div>
-            <CardContent className="p-3 space-y-2">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-[14px] font-semibold text-foreground line-clamp-1 flex-1">
-                  {hotel.name}
-                </h3>
-                <span className="text-[15px] font-bold text-primary font-mono whitespace-nowrap">
-                  ¥{hotel.avgPrice}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-                <span>{hotel.city}</span>
-                <span className="text-border">·</span>
-                <span className="truncate">{hotel.brand}</span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {hotel.tags.slice(0, 3).map((t) => (
-                  <Badge
-                    key={t}
-                    variant="secondary"
-                    className="text-[10px] h-4 px-1.5 font-normal"
-                  >
-                    {t}
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex items-center justify-between pt-1 border-t border-border/40">
-                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                  <span>房间 {hotel.roomCount}</span>
-                  <span>订单 {hotel.totalOrders}</span>
-                </div>
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-[11px] text-primary hover:text-primary"
+      {/* Table */}
+      <div className="border border-border/50 rounded-lg bg-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-[13px] min-w-[1100px]">
+            <thead>
+              <tr className="bg-muted/40 border-b border-border/40 text-[12px] text-muted-foreground">
+                <th className="w-10 px-3 py-2.5 text-left">
+                  <Checkbox
+                    checked={selected.size === paged.length && paged.length > 0}
+                    onCheckedChange={toggleAll}
+                  />
+                </th>
+                <th className="px-3 py-2.5 text-left font-semibold">酒店名称</th>
+                <th className="px-3 py-2.5 text-left font-semibold">酒店ID</th>
+                <th className="px-3 py-2.5 text-left font-semibold">渠道</th>
+                <th className="px-3 py-2.5 text-left font-semibold">评分</th>
+                <th className="px-3 py-2.5 text-left font-semibold">城市</th>
+                <th className="px-3 py-2.5 text-left font-semibold">品牌</th>
+                <th className="px-3 py-2.5 text-left font-semibold">房间量</th>
+                <th className="px-3 py-2.5 text-left font-semibold">标签</th>
+                <th className="px-3 py-2.5 text-left font-semibold">订单数</th>
+                <th className="px-3 py-2.5 text-left font-semibold">均价(¥)</th>
+                <th className="px-3 py-2.5 text-right font-semibold w-44">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paged.map((hotel, idx) => (
+                <tr
+                  key={hotel.id}
+                  className={`border-b border-border/30 hover:bg-accent/40 transition-colors ${
+                    idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"
+                  }`}
                 >
-                  <Link to="/data-pool/$hotelId" params={{ hotelId: hotel.id }}>
-                    <Eye className="h-3 w-3 mr-1" />
-                    详情
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {paged.length === 0 && (
-        <div className="text-center py-16 text-muted-foreground text-[13px]">
-          暂无符合条件的数据
+                  <td className="px-3 py-2.5">
+                    <Checkbox
+                      checked={selected.has(hotel.id)}
+                      onCheckedChange={() => toggleSelect(hotel.id)}
+                    />
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <Link
+                      to="/data-pool/$hotelId"
+                      params={{ hotelId: hotel.id }}
+                      className="font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                      {hotel.name}
+                    </Link>
+                  </td>
+                  <td className="px-3 py-2.5 text-[12px] font-mono text-muted-foreground">
+                    {hotel.hotelExternalId ?? hotel.id}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <Badge variant="outline" className="text-[11px] h-5">
+                      {hotel.channel}
+                    </Badge>
+                  </td>
+                  <td className="px-3 py-2.5 font-semibold text-warning">{hotel.rating}</td>
+                  <td className="px-3 py-2.5">{hotel.city}</td>
+                  <td className="px-3 py-2.5 truncate max-w-[120px]">{hotel.brand}</td>
+                  <td className="px-3 py-2.5 font-mono">{hotel.roomCount}</td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex flex-wrap gap-1">
+                      {hotel.tags.slice(0, 2).map((t) => (
+                        <Badge
+                          key={t}
+                          variant="secondary"
+                          className="text-[10px] h-4 px-1.5 font-normal"
+                        >
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-3 py-2.5 font-mono">{hotel.totalOrders}</td>
+                  <td className="px-3 py-2.5 font-mono font-medium">¥{hotel.avgPrice}</td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
+                        onClick={() => setPriceHotel(hotel)}
+                      >
+                        <TagIcon className="h-3.5 w-3.5 mr-1" />
+                        查价
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
+                        onClick={() => setPublishHotel(hotel)}
+                      >
+                        <Upload className="h-3.5 w-3.5 mr-1" />
+                        发布
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {paged.length === 0 && (
+                <tr>
+                  <td colSpan={12} className="text-center py-12 text-muted-foreground">
+                    暂无符合条件的数据
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       <DataTablePagination
         total={filtered.length}
@@ -222,6 +267,17 @@ export function DataPool() {
         pageSize={pageSize}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
+      />
+
+      <PriceQueryDialog
+        hotel={priceHotel}
+        open={!!priceHotel}
+        onOpenChange={(o) => !o && setPriceHotel(null)}
+      />
+      <PublishDialog
+        hotel={publishHotel}
+        open={!!publishHotel}
+        onOpenChange={(o) => !o && setPublishHotel(null)}
       />
     </div>
   );
