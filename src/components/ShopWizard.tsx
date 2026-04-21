@@ -1,10 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -22,23 +33,17 @@ import {
   Plug,
   ClipboardCheck,
   RefreshCw,
+  CalendarIcon,
+  AlertCircle,
+  Settings2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import type { Channel, Shop } from "@/lib/types";
 
 type Platform = Extract<Channel, "飞猪" | "携程" | "美团"> | "其他";
 const PLATFORMS: Platform[] = ["飞猪", "携程", "美团", "其他"];
-
-interface PlatformConfig {
-  platform: Platform;
-  openTime: string;
-  expireTime: string;
-  appKey?: string;
-  appSecret?: string;
-  // 仅飞猪需要测试连接
-  tested?: boolean;
-}
 
 const SHOP_KEY = "hotelos.shops.list";
 
@@ -49,50 +54,97 @@ const STEPS = [
   { id: 4, title: "确认创建", icon: ClipboardCheck },
 ];
 
+/** 日期选择按钮：整框可点击，日历图标居右，支持年份快捷切换 */
+function DateField({
+  value,
+  onChange,
+  placeholder = "请选择日期",
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const date = value ? new Date(value) : undefined;
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          className={cn(
+            "w-full h-10 justify-between font-normal text-[13px]",
+            !value && "text-muted-foreground",
+          )}
+        >
+          {value ? format(date!, "yyyy-MM-dd") : placeholder}
+          <CalendarIcon className="h-4 w-4 opacity-60" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={(d) => onChange(d ? format(d, "yyyy-MM-dd") : "")}
+          captionLayout="dropdown"
+          fromYear={2000}
+          toYear={2100}
+          initialFocus
+          className={cn("p-3 pointer-events-auto")}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function ShopWizard() {
   const navigate = useNavigate();
   const { setHasShop } = useAuth();
   const [step, setStep] = useState(1);
+
+  // Step1
   const [name, setName] = useState("");
-  const [platforms, setPlatforms] = useState<PlatformConfig[]>([]);
+  const [shortName, setShortName] = useState("");
+
+  // Step2 - 单选平台
+  const [platform, setPlatform] = useState<Platform | null>(null);
+  const [openTime, setOpenTime] = useState("");
+  const [expireTime, setExpireTime] = useState("");
+
+  // Step3 - 飞猪 API
+  const [appKey, setAppKey] = useState("");
+  const [appSecret, setAppSecret] = useState("");
+  const [tested, setTested] = useState(false);
   const [testing, setTesting] = useState(false);
 
-  const togglePlatform = (p: Platform) => {
-    setPlatforms((prev) => {
-      const exists = prev.find((x) => x.platform === p);
-      if (exists) return prev.filter((x) => x.platform !== p);
-      return [...prev, { platform: p, openTime: "", expireTime: "" }];
-    });
-  };
+  // 创建成功弹框
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [createdShopId, setCreatedShopId] = useState<string>("");
 
-  const updatePlatform = (p: Platform, patch: Partial<PlatformConfig>) => {
-    setPlatforms((prev) => prev.map((x) => (x.platform === p ? { ...x, ...patch } : x)));
-  };
-
-  const feizhu = platforms.find((p) => p.platform === "飞猪");
+  const isFeizhu = platform === "飞猪";
 
   const next = () => {
     if (step === 1) {
       if (!name.trim()) return toast.error("请输入店铺名称");
+      if (!shortName.trim()) return toast.error("请输入店铺简称");
     }
     if (step === 2) {
-      if (platforms.length === 0) return toast.error("请至少选择一个平台");
-      for (const p of platforms) {
-        if (!p.openTime || !p.expireTime) {
-          return toast.error(`请填写【${p.platform}】的开店时间和有限期`);
-        }
-      }
-      // 没选飞猪，跳过 step 3
-      if (!feizhu) {
-        setStep(4);
-        return;
-      }
+      if (!platform) return toast.error("请选择一个平台");
+      if (!openTime) return toast.error("请选择开店时间");
+      if (!expireTime) return toast.error("请选择平台授权有效期");
+    }
+    // 没选飞猪，跳过 step 3
+    if (step === 2 && !isFeizhu) {
+      setStep(4);
+      return;
     }
     setStep((s) => Math.min(4, s + 1));
   };
 
   const prev = () => {
-    if (step === 4 && !feizhu) {
+    if (step === 4 && !isFeizhu) {
       setStep(2);
       return;
     }
@@ -100,28 +152,27 @@ export function ShopWizard() {
   };
 
   const testConnection = async () => {
-    if (!feizhu?.appKey || !feizhu?.appSecret) {
+    if (!appKey.trim() || !appSecret.trim()) {
       toast.error("请先填写 AppKey 与 AppSecret");
       return;
     }
     setTesting(true);
     await new Promise((r) => setTimeout(r, 1000));
     setTesting(false);
-    updatePlatform("飞猪", { tested: true });
+    setTested(true);
     toast.success("连接测试通过");
   };
 
   const reconfigureApi = () => {
-    updatePlatform("飞猪", { tested: false });
+    setTested(false);
   };
 
-  // Step3 下一步前置校验：必须填写并连接测试通过
   const goNextFromStep3 = () => {
-    if (!feizhu?.appKey?.trim() || !feizhu?.appSecret?.trim()) {
+    if (!appKey.trim() || !appSecret.trim()) {
       toast.error("请填写 AppKey 与 AppSecret");
       return;
     }
-    if (!feizhu.tested) {
+    if (!tested) {
       toast.error("请先点击「连接测试」并通过后再继续");
       return;
     }
@@ -129,32 +180,34 @@ export function ShopWizard() {
   };
 
   const handleCreate = () => {
+    const newId = `shop_${Date.now()}`;
+    const channel: Channel = platform === "其他" ? "途家" : (platform as Channel);
     const newShop: Shop = {
-      id: `shop_${Date.now()}`,
+      id: newId,
       name,
+      shortName,
       region: "华东",
       city: "-",
       address: "-",
-      channels: platforms.map((p) =>
-        p.platform === "其他" ? "途家" : (p.platform as Channel)
-      ),
-      publishTime: platforms[0]?.openTime || "",
+      channels: [channel],
+      publishTime: openTime,
+      openTime,
+      expireTime,
       apiConfigs:
-        feizhu && feizhu.tested && feizhu.appKey
+        isFeizhu && tested && appKey
           ? [
               {
                 id: `ac_${Date.now()}`,
                 channel: "飞猪",
                 apiUrl: "https://eco.taobao.com/router/rest",
-                shopAccountId: feizhu.appKey,
-                apiKey: feizhu.appSecret || "",
+                shopAccountId: appKey,
+                apiKey: appSecret,
               },
             ]
           : [],
       createdAt: new Date().toISOString().split("T")[0],
     };
 
-    // 持久化
     try {
       const raw = localStorage.getItem(SHOP_KEY);
       const list: Shop[] = raw ? JSON.parse(raw) : [];
@@ -164,7 +217,17 @@ export function ShopWizard() {
       /* ignore */
     }
     setHasShop(true);
-    toast.success("店铺创建成功");
+    setCreatedShopId(newId);
+    setSuccessOpen(true);
+  };
+
+  const goConfigureRules = () => {
+    setSuccessOpen(false);
+    navigate({ to: "/shops/$shopId", params: { shopId: createdShopId } });
+  };
+
+  const skipConfigure = () => {
+    setSuccessOpen(false);
     navigate({ to: "/shops" });
   };
 
@@ -225,7 +288,9 @@ export function ShopWizard() {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">店铺名称</Label>
+                <Label className="text-xs">
+                  店铺名称 <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   className="h-10"
                   placeholder="例如：上海外滩希尔顿酒店"
@@ -233,6 +298,20 @@ export function ShopWizard() {
                   onChange={(e) => setName(e.target.value)}
                   autoFocus
                 />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">
+                  店铺简称 <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  className="h-10"
+                  placeholder="例如：外滩希尔顿"
+                  value={shortName}
+                  onChange={(e) => setShortName(e.target.value)}
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  简称用于列表与卡片中的简短展示
+                </p>
               </div>
             </>
           )}
@@ -242,84 +321,90 @@ export function ShopWizard() {
               <div>
                 <h3 className="text-base font-semibold">配置平台</h3>
                 <p className="text-[12px] text-muted-foreground mt-1">
-                  选择本店铺接入的 OTA 平台，并填写开店时间与有限期
+                  选择本店铺接入的 OTA 平台（仅可选择一个），并填写开店时间与平台授权有效期
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs">选择平台（可多选）</Label>
-                <div className="flex flex-wrap gap-2">
+              <div className="space-y-3">
+                <Label className="text-xs">
+                  选择平台 <span className="text-destructive">*</span>
+                </Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {PLATFORMS.map((p) => {
-                    const selected = !!platforms.find((x) => x.platform === p);
+                    const selected = platform === p;
                     return (
-                      <Badge
+                      <button
                         key={p}
-                        variant={selected ? "default" : "outline"}
-                        onClick={() => togglePlatform(p)}
-                        className={`cursor-pointer h-8 px-3 text-[12px] ${
-                          selected ? "" : "border-border/60"
-                        }`}
+                        type="button"
+                        onClick={() => setPlatform(p)}
+                        className={cn(
+                          "relative h-16 rounded-xl border-2 transition-all flex items-center justify-center text-[14px] font-medium",
+                          selected
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-border bg-card text-foreground hover:border-primary/50 hover:bg-muted/40",
+                        )}
                       >
-                        {selected && <Check className="h-3 w-3 mr-1" />}
+                        {selected && (
+                          <span className="absolute top-1.5 right-1.5 h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5" />
+                          </span>
+                        )}
                         {p}
-                      </Badge>
+                      </button>
                     );
                   })}
                 </div>
               </div>
 
-              {platforms.length > 0 && (
-                <div className="space-y-3 pt-2">
-                  {platforms.map((p) => (
-                    <div
-                      key={p.platform}
-                      className="border border-border/50 rounded-lg p-3 space-y-3 bg-muted/20"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Badge className="text-[11px]">{p.platform}</Badge>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">开店时间</Label>
-                          <Input
-                            type="date"
-                            className="h-9"
-                            value={p.openTime}
-                            onChange={(e) =>
-                              updatePlatform(p.platform, { openTime: e.target.value })
-                            }
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label className="text-xs">平台有限期</Label>
-                          <Input
-                            type="date"
-                            className="h-9"
-                            value={p.expireTime}
-                            onChange={(e) =>
-                              updatePlatform(p.platform, { expireTime: e.target.value })
-                            }
-                          />
-                        </div>
-                      </div>
+              {platform && (
+                <div className="space-y-4 pt-3 border-t border-border/50">
+                  <div className="flex items-center gap-2">
+                    <Badge className="text-[11px]">{platform}</Badge>
+                    <span className="text-[12px] text-muted-foreground">平台时间设置</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">
+                        开店时间 <span className="text-destructive">*</span>
+                      </Label>
+                      <DateField
+                        value={openTime}
+                        onChange={setOpenTime}
+                        placeholder="选择开店时间"
+                      />
                     </div>
-                  ))}
+                    <div className="space-y-2">
+                      <Label className="text-xs flex items-center gap-1.5">
+                        平台授权有效期 <span className="text-destructive">*</span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger type="button">
+                              <AlertCircle className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              平台授权到期后将无法继续推送/同步数据，请在到期前完成续期
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </Label>
+                      <DateField
+                        value={expireTime}
+                        onChange={setExpireTime}
+                        placeholder="选择有效期"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
             </>
           )}
 
-          {step === 3 && feizhu && (
+          {step === 3 && isFeizhu && (
             <>
               <div>
-                <h3 className="text-base font-semibold flex items-center gap-2">
-                  飞猪 API 配置
-                  <Badge variant="secondary" className="text-[10px]">
-                    可选
-                  </Badge>
-                </h3>
+                <h3 className="text-base font-semibold">飞猪 API 配置</h3>
                 <p className="text-[12px] text-muted-foreground mt-1">
-                  配置 AppKey 与 AppSecret 后即可与飞猪平台数据互通，可稍后再配
+                  配置 AppKey 与 AppSecret 后即可与飞猪平台数据互通
                 </p>
               </div>
 
@@ -327,7 +412,7 @@ export function ShopWizard() {
                 <div className="space-y-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs flex items-center gap-1.5">
-                      AppKey
+                      AppKey <span className="text-destructive">*</span>
                       <Tooltip>
                         <TooltipTrigger type="button">
                           <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground" />
@@ -340,14 +425,14 @@ export function ShopWizard() {
                     <Input
                       className="h-10 font-mono"
                       placeholder="请输入飞猪 AppKey"
-                      value={feizhu.appKey || ""}
-                      disabled={feizhu.tested}
-                      onChange={(e) => updatePlatform("飞猪", { appKey: e.target.value })}
+                      value={appKey}
+                      disabled={tested}
+                      onChange={(e) => setAppKey(e.target.value)}
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs flex items-center gap-1.5">
-                      AppSecret
+                      AppSecret <span className="text-destructive">*</span>
                       <Tooltip>
                         <TooltipTrigger type="button">
                           <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground" />
@@ -359,15 +444,15 @@ export function ShopWizard() {
                     </Label>
                     <Input
                       className="h-10 font-mono"
-                      type={feizhu.tested ? "password" : "text"}
+                      type={tested ? "password" : "text"}
                       placeholder="请输入飞猪 AppSecret"
-                      value={feizhu.appSecret || ""}
-                      disabled={feizhu.tested}
-                      onChange={(e) => updatePlatform("飞猪", { appSecret: e.target.value })}
+                      value={appSecret}
+                      disabled={tested}
+                      onChange={(e) => setAppSecret(e.target.value)}
                     />
                   </div>
 
-                  {feizhu.tested && (
+                  {tested && (
                     <div className="flex items-center gap-2 text-[12px] text-success bg-success/10 rounded-md px-3 py-2">
                       <CheckCircle2 className="h-4 w-4" />
                       连接测试通过，配置已锁定
@@ -375,7 +460,7 @@ export function ShopWizard() {
                   )}
 
                   <div className="flex gap-2 pt-1">
-                    {feizhu.tested ? (
+                    {tested ? (
                       <Button variant="outline" className="flex-1" onClick={reconfigureApi}>
                         <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                         更换配置
@@ -413,35 +498,31 @@ export function ShopWizard() {
 
               <dl className="divide-y divide-border/60 border border-border/60 rounded-lg overflow-hidden">
                 <Row label="店铺名称" value={name} />
+                <Row label="店铺简称" value={shortName} />
                 <Row
                   label="平台"
                   value={
-                    <div className="flex flex-wrap gap-1">
-                      {platforms.map((p) => (
-                        <Badge key={p.platform} variant="secondary" className="text-[11px]">
-                          {p.platform}
-                        </Badge>
-                      ))}
-                    </div>
+                    platform ? (
+                      <Badge variant="secondary" className="text-[11px]">
+                        {platform}
+                      </Badge>
+                    ) : (
+                      "-"
+                    )
                   }
                 />
-                {platforms.map((p) => (
-                  <Row
-                    key={p.platform}
-                    label={`${p.platform} 时间`}
-                    value={`开店：${p.openTime || "-"} · 有限期：${p.expireTime || "-"}`}
-                  />
-                ))}
-                {feizhu && (
+                <Row label="开店时间" value={openTime || "-"} />
+                <Row label="平台授权有效期" value={expireTime || "-"} />
+                {isFeizhu && (
                   <Row
                     label="飞猪 API"
                     value={
-                      feizhu.tested ? (
+                      tested ? (
                         <span className="text-success flex items-center gap-1">
                           <CheckCircle2 className="h-3.5 w-3.5" /> 已配置并测试通过
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">未配置（稍后再配）</span>
+                        <span className="text-muted-foreground">未配置</span>
                       )
                     }
                   />
@@ -475,6 +556,30 @@ export function ShopWizard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 创建成功弹窗 */}
+      <Dialog open={successOpen} onOpenChange={(o) => !o && skipConfigure()}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <div className="mx-auto h-12 w-12 rounded-full bg-success/10 flex items-center justify-center mb-2">
+              <CheckCircle2 className="h-7 w-7 text-success" />
+            </div>
+            <DialogTitle className="text-center">店铺创建成功</DialogTitle>
+            <DialogDescription className="text-center">
+              店铺已成功创建。建议您前往店铺详情页配置店铺规则（提前预定、加价、取消政策等），也可以稍后再配置。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center gap-2 flex-col-reverse sm:flex-row">
+            <Button variant="outline" onClick={skipConfigure}>
+              稍后再配置
+            </Button>
+            <Button onClick={goConfigureRules} className="gap-1">
+              <Settings2 className="h-4 w-4" />
+              前往配置
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

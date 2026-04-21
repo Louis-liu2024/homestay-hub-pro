@@ -149,11 +149,17 @@ export interface Order {
 export interface Shop {
   id: string;
   name: string;
+  /** 店铺简称 */
+  shortName?: string;
   region: string;
   city: string;
   address: string;
   channels: Channel[];
   publishTime?: string;
+  /** 平台授权有效期（开店时间） */
+  openTime?: string;
+  /** 平台授权有效期截止 */
+  expireTime?: string;
   apiConfigs: ShopApiConfig[];
   createdAt: string;
   /** 店铺发布状态 */
