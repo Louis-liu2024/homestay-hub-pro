@@ -268,48 +268,48 @@ export function ShopDetail() {
 
       {/* 基本信息 + 平台 API 合并 */}
       <Card className="border-border/60 bg-card">
-        <CardContent className="p-5 space-y-4">
+        <CardContent className="p-3.5 space-y-3">
           {/* 顶部：头像 + 名称 + 渠道 */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div
-              className={`h-14 w-14 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-lg shadow-md shrink-0`}
+              className={`h-10 w-10 rounded-lg bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold text-[13px] shadow-sm shrink-0`}
             >
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg font-bold truncate">{shop.name}</h1>
-              <p className="text-[12px] text-muted-foreground mt-0.5">
-                {shop.region} · {shop.city} · 创建于 {shop.createdAt}
-                {shop.shortName ? ` · 简称：${shop.shortName}` : ""}
-              </p>
-              <div className="flex gap-1 mt-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[14px] font-semibold truncate">{shop.name}</h1>
                 {shop.channels.map((ch) => (
-                  <Badge key={ch} variant="secondary" className="text-[10px] h-5 bg-primary/10 text-primary border-0">
+                  <Badge key={ch} variant="secondary" className="text-[10px] h-4 px-1.5 bg-primary/10 text-primary border-0">
                     {ch}
                   </Badge>
                 ))}
               </div>
+              <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                {shop.region} · {shop.city} · 创建于 {shop.createdAt}
+                {shop.shortName ? ` · 简称：${shop.shortName}` : ""}
+              </p>
             </div>
             {verified && (
-              <Badge variant="outline" className="text-[11px] gap-1 border-success/40 text-success shrink-0">
-                <ShieldCheck className="h-3 w-3" />
+              <Badge variant="outline" className="text-[10px] h-5 gap-1 border-success/40 text-success shrink-0">
+                <ShieldCheck className="h-2.5 w-2.5" />
                 超管已验证
               </Badge>
             )}
           </div>
 
           {/* 平台 API 区域 */}
-          <div className="pt-4 border-t border-border/50">
-            <div className="flex items-center gap-2 mb-3">
-              <KeyRound className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold">平台 API 配置</span>
-              <span className="ml-auto text-[11px] font-normal text-muted-foreground">
+          <div className="pt-3 border-t border-border/50">
+            <div className="flex items-center gap-2 mb-2">
+              <KeyRound className="h-3.5 w-3.5 text-primary" />
+              <span className="text-[12px] font-semibold">平台 API 配置</span>
+              <span className="ml-auto text-[10px] font-normal text-muted-foreground">
                 {verified ? "已解锁查看" : "查看与替换需超管验证"}
               </span>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {shop.apiConfigs.length === 0 && (
-                <p className="text-[12px] text-muted-foreground py-4 text-center border border-dashed border-border/60 rounded-md">
+                <p className="text-[11px] text-muted-foreground py-3 text-center border border-dashed border-border/60 rounded-md">
                   暂未配置任何平台 API
                 </p>
               )}
@@ -319,7 +319,7 @@ export function ShopDetail() {
                 return (
                   <div
                     key={ac.id}
-                    className="border border-border/50 rounded-lg p-3 space-y-3 bg-muted/10"
+                    className="border border-border/50 rounded-md p-2.5 space-y-2 bg-muted/10"
                   >
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2 flex-wrap">

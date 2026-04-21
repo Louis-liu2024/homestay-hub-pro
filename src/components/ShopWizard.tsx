@@ -218,7 +218,9 @@ export function ShopWizard() {
     }
     setHasShop(true);
     setCreatedShopId(newId);
-    setSuccessOpen(true);
+    // 先跳转到店铺列表，再弹出成功弹框
+    navigate({ to: "/shops" });
+    setTimeout(() => setSuccessOpen(true), 100);
   };
 
   const goConfigureRules = () => {
@@ -228,7 +230,6 @@ export function ShopWizard() {
 
   const skipConfigure = () => {
     setSuccessOpen(false);
-    navigate({ to: "/shops" });
   };
 
   return (
