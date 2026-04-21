@@ -165,105 +165,101 @@ export function DataPool() {
       {/* Table */}
       <div className="border border-border/50 rounded-lg bg-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-[13px] min-w-[1100px]">
+          <table className="w-full text-[13px] min-w-[1100px] border-separate border-spacing-0">
             <thead>
-              <tr className="bg-muted/40 border-b border-border/40 text-[12px] text-muted-foreground">
-                <th className="w-10 px-3 py-2.5 text-left">
+              <tr className="text-[12px] text-muted-foreground">
+                <th className="sticky left-0 z-20 bg-muted/60 backdrop-blur w-10 px-3 py-2.5 text-left border-b border-border/40">
                   <Checkbox
                     checked={selected.size === paged.length && paged.length > 0}
                     onCheckedChange={toggleAll}
                   />
                 </th>
-                <th className="px-3 py-2.5 text-left font-semibold">酒店名称</th>
-                <th className="px-3 py-2.5 text-left font-semibold">酒店ID</th>
-                <th className="px-3 py-2.5 text-left font-semibold">渠道</th>
-                <th className="px-3 py-2.5 text-left font-semibold">评分</th>
-                <th className="px-3 py-2.5 text-left font-semibold">城市</th>
-                <th className="px-3 py-2.5 text-left font-semibold">品牌</th>
-                <th className="px-3 py-2.5 text-left font-semibold">房间量</th>
-                <th className="px-3 py-2.5 text-left font-semibold">标签</th>
-                <th className="px-3 py-2.5 text-left font-semibold">订单数</th>
-                <th className="px-3 py-2.5 text-left font-semibold">均价(¥)</th>
-                <th className="px-3 py-2.5 text-right font-semibold w-44">操作</th>
+                <th className="sticky left-10 z-20 bg-muted/60 backdrop-blur px-3 py-2.5 text-left font-semibold border-b border-border/40 min-w-[180px]">酒店名称</th>
+                <th className="sticky left-[228px] z-20 bg-muted/60 backdrop-blur px-3 py-2.5 text-left font-semibold border-b border-r border-border/40 min-w-[140px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]">酒店ID</th>
+                <th className="bg-muted/40 px-3 py-2.5 text-left font-semibold border-b border-border/40">渠道</th>
+                <th className="bg-muted/40 px-3 py-2.5 text-left font-semibold border-b border-border/40">评分</th>
+                <th className="bg-muted/40 px-3 py-2.5 text-left font-semibold border-b border-border/40">城市</th>
+                <th className="bg-muted/40 px-3 py-2.5 text-left font-semibold border-b border-border/40">品牌</th>
+                <th className="bg-muted/40 px-3 py-2.5 text-left font-semibold border-b border-border/40">标签</th>
+                <th className="bg-muted/40 px-3 py-2.5 text-left font-semibold border-b border-border/40">评论数</th>
+                <th className="bg-muted/40 px-3 py-2.5 text-left font-semibold border-b border-border/40">房间数</th>
+                <th className="sticky right-0 z-20 bg-muted/60 backdrop-blur px-3 py-2.5 text-right font-semibold border-b border-l border-border/40 w-44 shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.08)]">操作</th>
               </tr>
             </thead>
             <tbody>
-              {paged.map((hotel, idx) => (
-                <tr
-                  key={hotel.id}
-                  className={`border-b border-border/30 hover:bg-accent/40 transition-colors ${
-                    idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card"
-                  }`}
-                >
-                  <td className="px-3 py-2.5">
-                    <Checkbox
-                      checked={selected.has(hotel.id)}
-                      onCheckedChange={() => toggleSelect(hotel.id)}
-                    />
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <Link
-                      to="/data-pool/$hotelId"
-                      params={{ hotelId: hotel.id }}
-                      className="font-medium text-foreground hover:text-primary transition-colors"
-                    >
-                      {hotel.name}
-                    </Link>
-                  </td>
-                  <td className="px-3 py-2.5 text-[12px] font-mono text-muted-foreground">
-                    {hotel.hotelExternalId ?? hotel.id}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <Badge variant="outline" className="text-[11px] h-5">
-                      {hotel.channel}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-2.5 font-semibold text-warning">{hotel.rating}</td>
-                  <td className="px-3 py-2.5">{hotel.city}</td>
-                  <td className="px-3 py-2.5 truncate max-w-[120px]">{hotel.brand}</td>
-                  <td className="px-3 py-2.5 font-mono">{hotel.roomCount}</td>
-                  <td className="px-3 py-2.5">
-                    <div className="flex flex-wrap gap-1">
-                      {hotel.tags.slice(0, 2).map((t) => (
-                        <Badge
-                          key={t}
-                          variant="secondary"
-                          className="text-[10px] h-4 px-1.5 font-normal"
+              {paged.map((hotel, idx) => {
+                const rowBg = idx % 2 === 1 ? "bg-[var(--row-stripe)]" : "bg-card";
+                return (
+                  <tr key={hotel.id} className="group">
+                    <td className={`sticky left-0 z-10 ${rowBg} group-hover:bg-accent/40 transition-colors px-3 py-2.5 border-b border-border/30`}>
+                      <Checkbox
+                        checked={selected.has(hotel.id)}
+                        onCheckedChange={() => toggleSelect(hotel.id)}
+                      />
+                    </td>
+                    <td className={`sticky left-10 z-10 ${rowBg} group-hover:bg-accent/40 transition-colors px-3 py-2.5 border-b border-border/30 min-w-[180px]`}>
+                      <Link
+                        to="/data-pool/$hotelId"
+                        params={{ hotelId: hotel.id }}
+                        className="font-medium text-foreground hover:text-primary transition-colors"
+                      >
+                        {hotel.name}
+                      </Link>
+                    </td>
+                    <td className={`sticky left-[228px] z-10 ${rowBg} group-hover:bg-accent/40 transition-colors px-3 py-2.5 text-[12px] font-mono text-muted-foreground border-b border-r border-border/30 min-w-[140px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]`}>
+                      {hotel.hotelExternalId ?? hotel.id}
+                    </td>
+                    <td className="px-3 py-2.5 border-b border-border/30 group-hover:bg-accent/40 transition-colors">
+                      <Badge variant="outline" className="text-[11px] h-5">
+                        {hotel.channel}
+                      </Badge>
+                    </td>
+                    <td className="px-3 py-2.5 font-semibold text-warning border-b border-border/30 group-hover:bg-accent/40 transition-colors">{hotel.rating}</td>
+                    <td className="px-3 py-2.5 border-b border-border/30 group-hover:bg-accent/40 transition-colors">{hotel.city}</td>
+                    <td className="px-3 py-2.5 truncate max-w-[120px] border-b border-border/30 group-hover:bg-accent/40 transition-colors">{hotel.brand}</td>
+                    <td className="px-3 py-2.5 border-b border-border/30 group-hover:bg-accent/40 transition-colors">
+                      <div className="flex flex-wrap gap-1">
+                        {hotel.tags.slice(0, 2).map((t) => (
+                          <Badge
+                            key={t}
+                            variant="secondary"
+                            className="text-[10px] h-4 px-1.5 font-normal"
+                          >
+                            {t}
+                          </Badge>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5 font-mono border-b border-border/30 group-hover:bg-accent/40 transition-colors">{formatNum(hotel.reviewCount ?? 0)}</td>
+                    <td className="px-3 py-2.5 font-mono border-b border-border/30 group-hover:bg-accent/40 transition-colors">{formatNum(hotel.roomCount)}</td>
+                    <td className={`sticky right-0 z-10 ${rowBg} group-hover:bg-accent/40 transition-colors px-3 py-2.5 border-b border-l border-border/30 shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.08)]`}>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
+                          onClick={() => setPriceHotel(hotel)}
                         >
-                          {t}
-                        </Badge>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-3 py-2.5 font-mono">{hotel.totalOrders}</td>
-                  <td className="px-3 py-2.5 font-mono font-medium">¥{hotel.avgPrice}</td>
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
-                        onClick={() => setPriceHotel(hotel)}
-                      >
-                        <TagIcon className="h-3.5 w-3.5 mr-1" />
-                        查价
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
-                        onClick={() => setPublishHotel(hotel)}
-                      >
-                        <Upload className="h-3.5 w-3.5 mr-1" />
-                        发布
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                          <TagIcon className="h-3.5 w-3.5 mr-1" />
+                          查价
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-[12px] text-muted-foreground hover:text-primary"
+                          onClick={() => setPublishHotel(hotel)}
+                        >
+                          <Upload className="h-3.5 w-3.5 mr-1" />
+                          发布
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
               {paged.length === 0 && (
                 <tr>
-                  <td colSpan={12} className="text-center py-12 text-muted-foreground">
+                  <td colSpan={11} className="text-center py-12 text-muted-foreground border-b border-border/30">
                     暂无符合条件的数据
                   </td>
                 </tr>
