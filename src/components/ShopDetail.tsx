@@ -991,7 +991,6 @@ export function ShopDetail() {
             </TabsContent>
           </Tabs>
 
-          <p className="text-[11px] text-muted-foreground">规则修改将自动保存</p>
         </CardContent>
       </Card>
 
@@ -1147,11 +1146,6 @@ function SecretRow({
   );
 }
 
-function RuleRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-[88px_1fr] gap-4 items-start">
-      <div className="text-[12.5px] font-medium text-foreground pt-2 text-right">{label}</div>
-      <div className="min-w-0">{children}</div>
-    </div>
-  );
+function RuleRow({ children }: { label?: string; children: React.ReactNode }) {
+  return <div className="min-w-0">{children}</div>;
 }
