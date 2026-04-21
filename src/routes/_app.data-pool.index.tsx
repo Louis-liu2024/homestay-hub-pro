@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { DataPoolList } from "@/components/DataPoolList";
+import { DataPool } from "@/components/DataPool";
 
 export const Route = createFileRoute("/_app/data-pool/")({
   head: () => ({
@@ -8,5 +8,5 @@ export const Route = createFileRoute("/_app/data-pool/")({
       { name: "description", content: "查看和管理从各渠道获取的酒店民宿数据" },
     ],
   }),
-  component: DataPoolList,
+  component: DataPool,
 });
