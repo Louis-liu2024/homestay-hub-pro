@@ -83,8 +83,10 @@ export function DataPool() {
     else setSelected(new Set(paged.map((h) => h.id)));
   };
 
+  const formatNum = (n: number) => n.toLocaleString("en-US");
+
   const handleExport = () => {
-    const headers = ["酒店ID", "酒店名称", "渠道", "评分", "城市", "品牌", "房间量", "标签", "订单数", "均价"];
+    const headers = ["酒店ID", "酒店名称", "渠道", "评分", "城市", "品牌", "标签", "评论数", "房间数"];
     const rows = filtered.map((h) => [
       h.hotelExternalId ?? h.id,
       h.name,
@@ -92,10 +94,9 @@ export function DataPool() {
       h.rating,
       h.city,
       h.brand,
-      h.roomCount,
       h.tags.join("/"),
-      h.totalOrders,
-      h.avgPrice,
+      h.reviewCount ?? 0,
+      h.roomCount,
     ]);
     const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
