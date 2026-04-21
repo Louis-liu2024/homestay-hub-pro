@@ -44,18 +44,9 @@ function loadShops(): Shop[] {
   return mockShops;
 }
 
-interface MarkupRule {
-  id: string;
-  supplier: string;
-  channel: string;
-  hotelTag: string;
-  priceMin: number;
-  priceMax: number;
-  otherCondition?: string;
-  markupPercent: number;
-  markupFixed: number;
-  priority: number;
-}
+import { MarkupRuleDialog, type MarkupRuleConfig } from "@/components/MarkupRuleDialog";
+
+type MarkupRule = MarkupRuleConfig;
 
 interface BlockRule {
   id: string;
