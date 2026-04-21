@@ -181,7 +181,31 @@ export function ShopDetail() {
   const [rules, setRules] = useState<ShopRules>(() => {
     try {
       const raw = localStorage.getItem(`${RULES_KEY}.${shopId}`);
-      if (raw) return { ...DEFAULT_RULES, ...JSON.parse(raw) };
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const merged: ShopRules = { ...DEFAULT_RULES, ...parsed };
+        // 兼容旧数据：补齐加价规则缺失字段
+        merged.markupRules = (merged.markupRules || []).map((r: Partial<MarkupRule>) => ({
+          id: r.id || `m${Date.now()}`,
+          channel: r.channel ?? "",
+          priceMin: r.priceMin ?? 0,
+          priceMax: r.priceMax ?? 9999,
+          breakfastMode: r.breakfastMode ?? "any",
+          breakfastCounts: r.breakfastCounts ?? [],
+          dateMode: r.dateMode ?? "range",
+          dateRange: r.dateRange ?? {},
+          monthlyDays: r.monthlyDays ?? [],
+          weeklyDays: r.weeklyDays ?? [],
+          specificDates: r.specificDates ?? [],
+          holidayMode: r.holidayMode ?? "none",
+          brandKeyword: r.brandKeyword ?? "",
+          roomKeyword: r.roomKeyword ?? "",
+          markupPercent: r.markupPercent ?? 0,
+          markupFixed: r.markupFixed ?? 0,
+          priority: r.priority ?? 0,
+        }));
+        return merged;
+      }
     } catch {
       /* ignore */
     }
