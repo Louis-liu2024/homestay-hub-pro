@@ -215,6 +215,24 @@ export function ShopDetail() {
           markupFixed: r.markupFixed ?? 0,
           priority: r.priority ?? 0,
         }));
+        // 兼容旧数据：补齐取消规则缺失字段
+        merged.cancelRules = (merged.cancelRules || []).map((r: Partial<CancelRule> & { condition?: string; rule?: string }) => ({
+          id: r.id || `c${Date.now()}`,
+          channel: r.channel ?? "",
+          priceMin: r.priceMin ?? 0,
+          priceMax: r.priceMax ?? 9999,
+          dateMode: r.dateMode ?? "range",
+          dateRange: r.dateRange ?? {},
+          monthlyDays: r.monthlyDays ?? [],
+          weeklyDays: r.weeklyDays ?? [],
+          specificDates: r.specificDates ?? [],
+          holidayMode: r.holidayMode ?? "none",
+          brandKeyword: r.brandKeyword ?? "",
+          roomKeyword: r.roomKeyword ?? "",
+          cancelMode: r.cancelMode ?? "any",
+          freeCancelTiers: r.freeCancelTiers ?? [],
+          priority: r.priority ?? 0,
+        }));
         return merged;
       }
     } catch {
